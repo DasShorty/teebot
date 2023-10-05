@@ -79,7 +79,7 @@ public class Bot {
         api.addButton(new FinishEmbedButton(embedDatabase));
 
         val selfRoleDatabase = new SelfRoleDatabase(mongoHandler);
-        api.addSlashCommand(new SelfRoleCommand(selfRoleDatabase));
+        api.addSlashCommand(new SelfRoleCommand(selfRoleDatabase, embedDatabase));
 
         api.getCommandHandler().updateCommands(jda.getGuilds().get(0));
     }
