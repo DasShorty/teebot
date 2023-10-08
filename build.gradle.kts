@@ -20,6 +20,7 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.28")
     annotationProcessor("org.projectlombok:lombok:1.18.28")
 
+    implementation("com.github.twitch4j:twitch4j:1.17.0")
 
     // mongo
     implementation("org.mongodb:mongodb-driver-sync:4.10.2")

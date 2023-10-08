@@ -1,5 +1,6 @@
 package de.dasshorty.teebot;
 
+import de.dasshorty.teebot.announcement.AnnouncementCommand;
 import de.dasshorty.teebot.api.APIHandler;
 import de.dasshorty.teebot.api.mongo.MongoHandler;
 import de.dasshorty.teebot.embedcreator.EmbedCommand;
@@ -21,8 +22,13 @@ import de.dasshorty.teebot.embedcreator.steps.step4.thumbnail.AddThumbnailButton
 import de.dasshorty.teebot.embedcreator.steps.step4.thumbnail.ThumbnailModal;
 import de.dasshorty.teebot.embedcreator.steps.step4.timestamp.AddTimstampButton;
 import de.dasshorty.teebot.embedcreator.steps.step5.FinishEmbedButton;
+import de.dasshorty.teebot.membercounter.UpdateMemberCounter;
 import de.dasshorty.teebot.selfroles.SelfRoleCommand;
 import de.dasshorty.teebot.selfroles.SelfRoleDatabase;
+import de.dasshorty.teebot.twitch.TwitchBot;
+import de.dasshorty.teebot.twitch.TwitchCommand;
+import de.dasshorty.teebot.twitch.TwitchDatabase;
+import de.dasshorty.teebot.welcomeembed.SendWelcomeEmbed;
 import lombok.SneakyThrows;
 import lombok.val;
 import net.dv8tion.jda.api.JDABuilder;
@@ -37,10 +43,12 @@ public class Bot {
 
         val mongoHandler = new MongoHandler();
 
-        builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_PRESENCES);
+        builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_MEMBERS);
         builder.enableCache(CacheFlag.ONLINE_STATUS, CacheFlag.ACTIVITY, CacheFlag.EMOJI, CacheFlag.MEMBER_OVERRIDES);
 
         val api = new APIHandler(builder);
+
+        builder.addEventListeners(new SendWelcomeEmbed());
 
         val jda = builder.build().awaitReady();
 
@@ -81,6 +89,20 @@ public class Bot {
         val selfRoleDatabase = new SelfRoleDatabase(mongoHandler);
         api.addSlashCommand(new SelfRoleCommand(selfRoleDatabase, embedDatabase));
 
-        api.getCommandHandler().updateCommands(jda.getGuilds().get(0));
+        api.addSlashCommand(new AnnouncementCommand(embedDatabase));
+
+        val guild = jda.getGuilds().get(0);
+
+        // twitch
+
+        val twitchDatabase = new TwitchDatabase(mongoHandler);
+
+        val twitchBot = new TwitchBot(twitchDatabase, guild);
+
+        api.addSlashCommand(new TwitchCommand(twitchBot));
+
+        new UpdateMemberCounter(guild);
+
+        api.getCommandHandler().updateCommands(guild);
     }
 }
