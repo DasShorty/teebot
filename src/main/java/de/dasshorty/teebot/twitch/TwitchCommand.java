@@ -3,9 +3,8 @@ package de.dasshorty.teebot.twitch;
 import de.dasshorty.teebot.api.Paginator;
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.commands.slashcommands.SlashCommand;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -14,13 +13,16 @@ import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 
 import java.awt.*;
 import java.time.Instant;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
+import java.util.List;
 
-@RequiredArgsConstructor
 public class TwitchCommand implements SlashCommand {
 
     private final TwitchBot twitchBot;
+
+    public TwitchCommand(TwitchBot twitchBot) {
+        this.twitchBot = twitchBot;
+    }
 
     @Override
     public CommandDataImpl commandData() {
@@ -38,7 +40,7 @@ public class TwitchCommand implements SlashCommand {
     @Override
     public void onExecute(SlashCommandInteractionEvent event) {
 
-        val member = event.getMember();
+        Member member = event.getMember();
 
         assert null != member;
 
@@ -54,7 +56,7 @@ public class TwitchCommand implements SlashCommand {
 
                 event.deferReply(true).queue();
 
-                val twitchName = event.getOption("twitch-name", OptionMapping::getAsString);
+                String twitchName = event.getOption("twitch-name", OptionMapping::getAsString);
 
                 if (!this.twitchBot.addChannel(twitchName)) {
 
@@ -79,7 +81,7 @@ public class TwitchCommand implements SlashCommand {
             case "remove" -> {
                 event.deferReply(true).queue();
 
-                val twitchName = event.getOption("twitch-name", OptionMapping::getAsString);
+                String twitchName = event.getOption("twitch-name", OptionMapping::getAsString);
 
                 if (!this.twitchBot.removeChannel(twitchName)) {
 
@@ -107,11 +109,11 @@ public class TwitchCommand implements SlashCommand {
                 if (null == page)
                     page = 1;
 
-                val twitchChannels = this.twitchBot.getTwitchDatabase().getAllTwitchChannels();
+                List<TwitchChannel> twitchChannels = this.twitchBot.getTwitchDatabase().getAllTwitchChannels();
 
-                val paginatedTwitchChannels = new Paginator<>(twitchChannels).maxSizePerPage(10);
+                HashMap<Integer, ArrayList<TwitchChannel>> paginatedTwitchChannels = new Paginator<>(twitchChannels).maxSizePerPage(10);
 
-                val embed = new EmbedBuilder()
+                EmbedBuilder embed = new EmbedBuilder()
                         .setAuthor("This Teebot")
                         .setColor(Color.WHITE)
                         .setTitle("Page " + page + " / " + paginatedTwitchChannels.keySet().size());

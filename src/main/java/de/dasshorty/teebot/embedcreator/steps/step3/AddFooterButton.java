@@ -2,7 +2,7 @@ package de.dasshorty.teebot.embedcreator.steps.step3;
 
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.buttons.Button;
-import lombok.val;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
@@ -17,7 +17,7 @@ public class AddFooterButton implements Button {
     @Override
     public void onExecute(ButtonInteractionEvent event) {
 
-        val member = event.getMember();
+        Member member = event.getMember();
         assert null != member;
 
         if (!(Roles.hasMemberRole(member, Roles.ADMIN) || Roles.hasMemberRole(member, Roles.DEVELOPER))) {
@@ -26,7 +26,7 @@ public class AddFooterButton implements Button {
             return;
         }
 
-        val modal = Modal.create("embed-creator-step3", "Footer")
+        Modal modal = Modal.create("embed-creator-step3", "Footer")
                 .addActionRow(TextInput.create("footer", "Footer", TextInputStyle.SHORT)
                         .setRequired(true)
                         .setPlaceholder("Setze den Footer")

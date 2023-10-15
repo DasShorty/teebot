@@ -1,21 +1,24 @@
 package de.dasshorty.teebot.twitch;
 
 import com.google.gson.Gson;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import com.mongodb.reactivestreams.client.MongoCollection;
 import de.dasshorty.teebot.api.mongo.MongoHandler;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.bson.Document;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@RequiredArgsConstructor
 public class TwitchDatabase {
 
     private static final Gson GSON = new Gson();
     private final MongoHandler mongoHandler;
+
+    public TwitchDatabase(MongoHandler mongoHandler) {
+        this.mongoHandler = mongoHandler;
+    }
 
     private MongoCollection<Document> collection() {
         return this.mongoHandler.collection("twitch");
@@ -45,13 +48,29 @@ public class TwitchDatabase {
 
     public List<TwitchChannel> getAllTwitchChannels() {
 
-        val list = new ArrayList<TwitchChannel>();
+        List<TwitchChannel> list = new ArrayList<>();
 
-        val cursor = this.collection().find().cursor();
+       this.collection().find().subscribe(new Subscriber<>() {
+           @Override
+           public void onSubscribe(Subscription s) {
+               s.request(1L);
+           }
 
-        while (cursor.hasNext()) {
-            list.add(GSON.fromJson(cursor.next().toJson(), TwitchChannel.class));
-        }
+           @Override
+           public void onNext(Document document) {
+               list.add(GSON.fromJson(document.toJson(), TwitchChannel.class));
+           }
+
+           @Override
+           public void onError(Throwable t) {
+               t.fillInStackTrace();
+           }
+
+           @Override
+           public void onComplete() {
+
+           }
+       });
 
         return list;
     }

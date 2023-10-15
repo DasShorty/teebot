@@ -3,9 +3,9 @@ package de.dasshorty.teebot.embedcreator;
 import de.dasshorty.teebot.api.Paginator;
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.commands.slashcommands.SlashCommand;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -17,15 +17,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.time.Instant;
-import java.time.temporal.TemporalAccessor;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-@RequiredArgsConstructor
 public class EmbedCommand implements SlashCommand {
 
     private final EmbedDatabase embedDatabase;
+
+    public EmbedCommand(EmbedDatabase embedDatabase) {
+        this.embedDatabase = embedDatabase;
+    }
 
     @Override
     public CommandDataImpl commandData() {
@@ -52,7 +55,7 @@ public class EmbedCommand implements SlashCommand {
     @Override
     public void onExecute(@NotNull SlashCommandInteractionEvent event) {
 
-        val member = event.getMember();
+        Member member = event.getMember();
 
         assert null != member;
 
@@ -69,21 +72,21 @@ public class EmbedCommand implements SlashCommand {
             case "create" -> {
 
                 event.deferReply(true).queue();
-                val embedId = event.getOption("embedid", OptionMapping::getAsString);
+                String embedId = event.getOption("embedid", OptionMapping::getAsString);
 
                 @SuppressWarnings("AutoBoxing")
-                val author = event.getOption("author", OptionMapping::getAsBoolean);
+                Boolean author = event.getOption("author", OptionMapping::getAsBoolean);
 
                 // optional options
 
-                val title = event.getOption("title", OptionMapping::getAsString);
-                val description = event.getOption("description", OptionMapping::getAsString);
+                String title = event.getOption("title", OptionMapping::getAsString);
+                String description = event.getOption("description", OptionMapping::getAsString);
 
                 Embed.Author authorTile = new Embed.Author(null, null, null);
                 if (Boolean.TRUE.equals(author))
                     authorTile = new Embed.Author(member.getEffectiveName(), member.getEffectiveAvatarUrl(), null);
 
-                val contentTile = new Embed.Content(title, description);
+                Embed.Content contentTile = new Embed.Content(title, description);
 
                 this.embedDatabase.storeEmbed(new Embed(
                         embedId,
@@ -116,11 +119,11 @@ public class EmbedCommand implements SlashCommand {
                 if (null == page)
                     page = 1;
 
-                val embeds = this.embedDatabase.embeds();
+                List<Embed> embeds = this.embedDatabase.embeds();
 
-                val paginatedEmbeds = new Paginator<>(embeds).maxSizePerPage(5);
+                HashMap<Integer, ArrayList<Embed>> paginatedEmbeds = new Paginator<>(embeds).maxSizePerPage(5);
 
-                val embed = new EmbedBuilder()
+                EmbedBuilder embed = new EmbedBuilder()
                         .setAuthor("Embed System")
                         .setColor(Color.WHITE)
                         .setTitle("Page " + page + " / " + paginatedEmbeds.keySet().size());
@@ -138,7 +141,7 @@ public class EmbedCommand implements SlashCommand {
                 }
 
                 for (Embed pageEmbed : paginatedEmbeds.get(page.intValue() - 1)) {
-                    val title = pageEmbed.getContent().title();
+                    String title = pageEmbed.getContent().title();
 
                     embed.addField(pageEmbed.getEmbedId(), null == title ? "*Kein Titel gesetzt*" : title, false);
 
@@ -152,38 +155,45 @@ public class EmbedCommand implements SlashCommand {
 
                 event.deferReply(true).queue();
 
-                val embedId = event.getOption("embedid", OptionMapping::getAsString);
-                val channel = Objects.requireNonNull(event.getOption("channel", OptionMapping::getAsChannel)).asGuildMessageChannel();
+                String embedId = event.getOption("embedid", OptionMapping::getAsString);
+                GuildMessageChannel channel = Objects.requireNonNull(event.getOption("channel", OptionMapping::getAsChannel)).asGuildMessageChannel();
 
-                val optionalEmbed = this.embedDatabase.getEmbed(embedId);
+                CompletableFuture<Optional<Embed>> future = this.embedDatabase.getEmbed(embedId);
 
-                if (optionalEmbed.isEmpty()) {
+                try {
+                    Optional<Embed> optionalEmbed = future.get();
+
+                    if (optionalEmbed.isEmpty()) {
+                        event.getHook().editOriginalEmbeds(new EmbedBuilder()
+                                .setAuthor("Embed System")
+                                .setDescription("Das angegebene Embed mit der ID **" + embedId + "** existiert in der Datenbank nicht.")
+                                .setColor(Color.RED)
+                                .setTimestamp(Instant.now())
+                                .build()).queue();
+                        return;
+                    }
+
+                    Embed embed = optionalEmbed.get();
+
+                    EmbedBuilder sendEmbed = embed.buildEmbed();
+
+                    channel.sendMessageEmbeds(sendEmbed.build()).queue();
                     event.getHook().editOriginalEmbeds(new EmbedBuilder()
                             .setAuthor("Embed System")
-                            .setDescription("Das angegebene Embed mit der ID **" + embedId + "** existiert in der Datenbank nicht.")
-                            .setColor(Color.RED)
-                            .setTimestamp(Instant.now())
+                            .setDescription("Das Embed wurde erfolgreich in den Channel " + channel.getAsMention() + " gesendet!")
+                            .setColor(Color.GREEN)
                             .build()).queue();
-                    return;
+
+                } catch (InterruptedException | ExecutionException e) {
+                    e.fillInStackTrace();
                 }
-
-                val embed = optionalEmbed.get();
-
-                val sendEmbed = embed.buildEmbed();
-
-                channel.sendMessageEmbeds(sendEmbed.build()).queue();
-                event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                        .setAuthor("Embed System")
-                        .setDescription("Das Embed wurde erfolgreich in den Channel " + channel.getAsMention() + " gesendet!")
-                        .setColor(Color.GREEN)
-                        .build()).queue();
             }
 
             case "delete" -> {
 
                 event.deferReply(true).queue();
 
-                val embedId = event.getOption("embedid", OptionMapping::getAsString);
+                String embedId = event.getOption("embedid", OptionMapping::getAsString);
 
                 this.embedDatabase.deleteEmbed(embedId);
 

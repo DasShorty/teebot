@@ -1,21 +1,26 @@
 package de.dasshorty.teebot.selfroles;
 
 import com.google.gson.Gson;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.Success;
 import de.dasshorty.teebot.api.mongo.MongoHandler;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.bson.Document;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-@RequiredArgsConstructor
 public class SelfRoleDatabase {
 
     private static final Gson GSON = new Gson();
     private final MongoHandler mongoHandler;
+
+    public SelfRoleDatabase(MongoHandler mongoHandler) {
+        this.mongoHandler = mongoHandler;
+    }
 
     private MongoCollection<Document> collection() {
         return this.mongoHandler.collection("self-roles");
@@ -25,12 +30,38 @@ public class SelfRoleDatabase {
         return this.collection().find(Filters.eq("id", roleId)).first() != null;
     }
 
-    boolean addSelfRole(SelfRole selfRole) {
+    CompletableFuture<Boolean> addSelfRole(SelfRole selfRole) {
 
-        if (this.isSelfRolePersist(selfRole.id()))
-            return false;
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
 
-        return this.collection().insertOne(GSON.fromJson(selfRole.toGson(), Document.class)).wasAcknowledged();
+        if (this.isSelfRolePersist(selfRole.id())) {
+            future.complete(false);
+            return future;
+        }
+
+        this.collection().insertOne(GSON.fromJson(selfRole.toGson(), Document.class)).subscribe(new Subscriber<>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(1L);
+            }
+
+            @Override
+            public void onNext(Success success) {
+                future.complete(success == Success.SUCCESS);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                t.fillInStackTrace();
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+        return future;
     }
 
     void removeSelfRole(String roleId) {
@@ -39,13 +70,29 @@ public class SelfRoleDatabase {
 
     List<SelfRole> getAllSelfRolesByCategory(SelfRoleCategory category) {
 
-        val list = new ArrayList<SelfRole>();
+        List<SelfRole> list = new ArrayList<>();
 
-        val cursor = this.collection().find(Filters.eq("category", category.name())).cursor();
+        this.collection().find(Filters.eq("category", category.name())).subscribe(new Subscriber<Document>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(1L);
+            }
 
-        while (cursor.hasNext()) {
-            list.add(GSON.fromJson(cursor.next().toJson(), SelfRole.class));
-        }
+            @Override
+            public void onNext(Document document) {
+                list.add(GSON.fromJson(document.toJson(), SelfRole.class));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                t.fillInStackTrace();
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
 
         return list;
     }

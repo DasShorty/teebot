@@ -17,13 +17,11 @@ dependencies {
 
     // 3rd party api's
     implementation("com.google.code.gson:gson:2.10.1")
-    implementation("org.projectlombok:lombok:1.18.28")
-    annotationProcessor("org.projectlombok:lombok:1.18.28")
 
     implementation("com.github.twitch4j:twitch4j:1.17.0")
 
     // mongo
-    implementation("org.mongodb:mongodb-driver-sync:4.10.2")
+    implementation("org.mongodb:mongodb-driver-reactivestreams:1.13.1")
 }
 
 application {

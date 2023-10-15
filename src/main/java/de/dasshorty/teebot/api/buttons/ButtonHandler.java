@@ -1,6 +1,5 @@
 package de.dasshorty.teebot.api.buttons;
 
-import lombok.Getter;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -9,8 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ButtonHandler extends ListenerAdapter {
-    @Getter
     private final List<Button> buttons = new ArrayList<>();
+
+    public List<Button> getButtons() {
+        return this.buttons;
+    }
 
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {

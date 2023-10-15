@@ -12,16 +12,14 @@ import de.dasshorty.teebot.api.menu.entity.EntitySelectionMenu;
 import de.dasshorty.teebot.api.menu.string.StringSelectionMenu;
 import de.dasshorty.teebot.api.modal.Modal;
 import de.dasshorty.teebot.api.modal.ModalHandler;
-import lombok.Getter;
 import net.dv8tion.jda.api.JDABuilder;
 
-@Getter
 public class APIHandler {
-
     private final ButtonHandler buttonHandler;
     private final CommandHandler commandHandler;
     private final SelectionMenuHandler selectionMenuHandler;
     private final ModalHandler modalHandler;
+
     public APIHandler(JDABuilder builder) {
         this.buttonHandler = new ButtonHandler();
         this.commandHandler = new CommandHandler();
@@ -32,6 +30,22 @@ public class APIHandler {
         builder.addEventListeners(this.commandHandler);
         builder.addEventListeners(this.selectionMenuHandler);
         builder.addEventListeners(this.modalHandler);
+    }
+
+    public ButtonHandler getButtonHandler() {
+        return this.buttonHandler;
+    }
+
+    public CommandHandler getCommandHandler() {
+        return this.commandHandler;
+    }
+
+    public SelectionMenuHandler getSelectionMenuHandler() {
+        return this.selectionMenuHandler;
+    }
+
+    public ModalHandler getModalHandler() {
+        return this.modalHandler;
     }
 
     public void addSlashCommand(SlashCommand slashCommand) {

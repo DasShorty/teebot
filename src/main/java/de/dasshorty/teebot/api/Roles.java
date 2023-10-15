@@ -1,13 +1,10 @@
 package de.dasshorty.teebot.api;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
 
-@RequiredArgsConstructor
-@Getter
 public enum Roles {
 
     ADMIN("1159074658168090726"),
@@ -24,11 +21,19 @@ public enum Roles {
 
     private final String roleId;
 
+    Roles(String roleId) {
+        this.roleId = roleId;
+    }
+
     public static boolean hasMemberRole(@NotNull Member member, @NotNull Roles roles) {
 
-        val guild = member.getGuild();
-        val roleById = guild.getRoleById(roles.roleId);
+        Guild guild = member.getGuild();
+        Role roleById = guild.getRoleById(roles.roleId);
 
         return member.getRoles().contains(roleById);
+    }
+
+    public String getRoleId() {
+        return this.roleId;
     }
 }

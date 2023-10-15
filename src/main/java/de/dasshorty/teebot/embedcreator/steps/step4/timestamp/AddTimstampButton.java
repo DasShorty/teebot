@@ -4,19 +4,23 @@ import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.buttons.Button;
 import de.dasshorty.teebot.embedcreator.Embed;
 import de.dasshorty.teebot.embedcreator.EmbedDatabase;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 
 import java.awt.*;
 import java.time.Instant;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-@RequiredArgsConstructor
 public class AddTimstampButton implements Button {
 
     private final EmbedDatabase embedDatabase;
+
+    public AddTimstampButton(EmbedDatabase embedDatabase) {
+        this.embedDatabase = embedDatabase;
+    }
 
     @Override
     public String id() {
@@ -25,7 +29,7 @@ public class AddTimstampButton implements Button {
 
     @Override
     public void onExecute(ButtonInteractionEvent event) {
-        val member = event.getMember();
+        Member member = event.getMember();
         assert null != member;
 
         if (!(Roles.hasMemberRole(member, Roles.ADMIN) || Roles.hasMemberRole(member, Roles.DEVELOPER))) {
@@ -34,32 +38,39 @@ public class AddTimstampButton implements Button {
             return;
         }
 
-        val embedId = this.embedDatabase.getMemberEmbedMap().get(member.getId());
+        String embedId = this.embedDatabase.getMemberEmbedMap().get(member.getId());
 
         event.deferReply(true).queue();
 
-        val optionalEmbed = this.embedDatabase.getEmbed(embedId);
+        CompletableFuture<Optional<Embed>> future = this.embedDatabase.getEmbed(embedId);
 
-        if (optionalEmbed.isEmpty()) {
-            event.getHook().editOriginal("Etwas ist schiefgelaufen! Bitte Melde dies an <@&1159086761763414046> (AddTimestampButton.java:45)").queue();
-            return;
+        try {
+            Optional<Embed> optionalEmbed = future.get();
+
+            if (optionalEmbed.isEmpty()) {
+                event.getHook().editOriginal("Etwas ist schiefgelaufen! Bitte Melde dies an <@&1159086761763414046> (AddTimestampButton.java:45)").queue();
+                return;
+            }
+
+            Embed embed = optionalEmbed.get();
+
+            Embed.Style style = embed.getStyle();
+
+            embed.setStyle(new Embed.Style(style.color(), style.image(), style.thumbnail(), System.currentTimeMillis()));
+
+            this.embedDatabase.storeEmbed(embed);
+
+            event.getHook().editOriginalEmbeds(new EmbedBuilder()
+                            .setAuthor("Embed Creator")
+                            .setDescription("Timestamp wurde gesetzt!")
+                            .setColor(Color.WHITE)
+                            .setTimestamp(Instant.now())
+                            .setFooter("Step 4 / 4")
+                            .build())
+                    .queue(message -> this.embedDatabase.getMemberEmbedMap().put(member.getId(), embedId));
+
+        } catch (InterruptedException | ExecutionException e) {
+            e.fillInStackTrace();
         }
-
-        val embed = optionalEmbed.get();
-
-        val style = embed.getStyle();
-
-        embed.setStyle(new Embed.Style(style.color(), style.image(), style.thumbnail(), System.currentTimeMillis()));
-
-        this.embedDatabase.storeEmbed(embed);
-
-        event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                        .setAuthor("Embed Creator")
-                        .setDescription("Timestamp wurde gesetzt!")
-                        .setColor(Color.WHITE)
-                        .setTimestamp(Instant.now())
-                        .setFooter("Step 4 / 4")
-                        .build())
-                .queue(message -> this.embedDatabase.getMemberEmbedMap().put(member.getId(), embedId));
     }
 }

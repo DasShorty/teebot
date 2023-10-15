@@ -1,7 +1,5 @@
 package de.dasshorty.teebot.api;
 
-import lombok.val;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,10 +8,10 @@ public record Paginator<O extends Object>(List<O> content) {
 
     public HashMap<Integer, ArrayList<O>> maxSizePerPage(int size) {
 
-        val map = new HashMap<Integer, ArrayList<O>>();
+        HashMap<Integer, ArrayList<O>> map = new HashMap<>();
 
         int step = 0;
-        for (final O position : content) {
+        for (O position : content) {
 
             // if nothing exists
             if (!map.containsKey(step)) {

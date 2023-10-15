@@ -2,7 +2,6 @@ package de.dasshorty.teebot.api.menu;
 
 import de.dasshorty.teebot.api.menu.entity.EntitySelectionMenu;
 import de.dasshorty.teebot.api.menu.string.StringSelectionMenu;
-import lombok.Getter;
 import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -11,11 +10,18 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-public class SelectionMenuHandler extends ListenerAdapter {
 
+public class SelectionMenuHandler extends ListenerAdapter {
     private final List<EntitySelectionMenu> entitySelectionMenus = new ArrayList<>();
     private final List<StringSelectionMenu> stringSelectionMenus = new ArrayList<>();
+
+    public List<EntitySelectionMenu> getEntitySelectionMenus() {
+        return this.entitySelectionMenus;
+    }
+
+    public List<StringSelectionMenu> getStringSelectionMenus() {
+        return this.stringSelectionMenus;
+    }
 
     @Override
     public void onStringSelectInteraction(@NotNull StringSelectInteractionEvent event) {

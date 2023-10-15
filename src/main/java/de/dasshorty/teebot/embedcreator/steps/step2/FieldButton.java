@@ -3,9 +3,8 @@ package de.dasshorty.teebot.embedcreator.steps.step2;
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.buttons.Button;
 import de.dasshorty.teebot.embedcreator.EmbedDatabase;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import org.jetbrains.annotations.NotNull;
@@ -13,10 +12,14 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.time.Instant;
 
-@RequiredArgsConstructor
+
 public class FieldButton implements Button {
 
     private final EmbedDatabase embedDatabase;
+
+    public FieldButton(EmbedDatabase embedDatabase) {
+        this.embedDatabase = embedDatabase;
+    }
 
     @Override
     public String id() {
@@ -26,7 +29,7 @@ public class FieldButton implements Button {
     @Override
     public void onExecute(@NotNull ButtonInteractionEvent event) {
 
-        val member = event.getMember();
+        Member member = event.getMember();
         assert null != member;
 
         if (!(Roles.hasMemberRole(member, Roles.ADMIN) || Roles.hasMemberRole(member, Roles.DEVELOPER))) {
@@ -35,7 +38,7 @@ public class FieldButton implements Button {
             return;
         }
 
-        val embedId = this.embedDatabase.getMemberEmbedMap().get(member.getId());
+        String embedId = this.embedDatabase.getMemberEmbedMap().get(member.getId());
 
         event.deferReply(true).queue();
 

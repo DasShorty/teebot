@@ -2,31 +2,40 @@ package de.dasshorty.teebot.selfroles;
 
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.commands.slashcommands.SlashCommand;
+import de.dasshorty.teebot.embedcreator.Embed;
 import de.dasshorty.teebot.embedcreator.EmbedDatabase;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 
 import java.awt.*;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-@RequiredArgsConstructor
 public class SelfRoleCommand implements SlashCommand {
-
     private final SelfRoleDatabase selfRoleDatabase;
     private final EmbedDatabase embedDatabase;
+
+    public SelfRoleCommand(SelfRoleDatabase selfRoleDatabase, EmbedDatabase embedDatabase) {
+        this.selfRoleDatabase = selfRoleDatabase;
+        this.embedDatabase = embedDatabase;
+    }
 
     @Override
     public CommandDataImpl commandData() {
 
-        val selfRoleCategory = new OptionData(OptionType.STRING, "category", "Kategorie der Eigenrolle", true);
-        val selfRole = new OptionData(OptionType.ROLE, "role", "Die Rolle", true);
+        OptionData selfRoleCategory = new OptionData(OptionType.STRING, "category", "Kategorie der Eigenrolle", true);
+        OptionData selfRole = new OptionData(OptionType.ROLE, "role", "Die Rolle", true);
 
         for (SelfRoleCategory value : SelfRoleCategory.values())
             selfRoleCategory.addChoice(value.getDisplayName(), value.name());
@@ -47,7 +56,7 @@ public class SelfRoleCommand implements SlashCommand {
 
     @Override
     public void onExecute(SlashCommandInteractionEvent event) {
-        val member = event.getMember();
+        Member member = event.getMember();
 
         assert null != member;
 
@@ -62,18 +71,25 @@ public class SelfRoleCommand implements SlashCommand {
             case "add" -> {
                 event.deferReply(true).queue();
 
-                val role = event.getOption("role", OptionMapping::getAsRole);
-                val category = SelfRoleCategory.valueOf(event.getOption("category", OptionMapping::getAsString));
-                val name = event.getOption("name", OptionMapping::getAsString);
+                Role role = event.getOption("role", OptionMapping::getAsRole);
+                SelfRoleCategory category = SelfRoleCategory.valueOf(event.getOption("category", OptionMapping::getAsString));
+                String name = event.getOption("name", OptionMapping::getAsString);
 
                 assert role != null;
-                if (!this.selfRoleDatabase.addSelfRole(new SelfRole(role.getId(), category, name))) {
-                    event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                            .setAuthor("Self Roles")
-                            .setDescription("Etwas ist schiefgelaufen beim speichern der Self Role!")
-                            .setColor(Color.RED)
-                            .build()).queue();
-                    return;
+                try {
+
+                    if (!this.selfRoleDatabase.addSelfRole(new SelfRole(role.getId(), category, name)).get().booleanValue()) {
+
+                        event.getHook().editOriginalEmbeds(new EmbedBuilder()
+                                .setAuthor("Self Roles")
+                                .setDescription("Etwas ist schiefgelaufen beim speichern der Self Role!")
+                                .setColor(Color.RED)
+                                .build()).queue();
+                        return;
+
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    e.fillInStackTrace();
                 }
 
                 event.getHook().editOriginalEmbeds(new EmbedBuilder()
@@ -86,7 +102,7 @@ public class SelfRoleCommand implements SlashCommand {
             case "remove" -> {
 
                 event.deferReply(true).queue();
-                val role = event.getOption("role", OptionMapping::getAsRole);
+                Role role = event.getOption("role", OptionMapping::getAsRole);
 
                 if (!this.selfRoleDatabase.isSelfRolePersist(role.getId())) {
                     event.getHook().editOriginalEmbeds(new EmbedBuilder()
@@ -109,34 +125,41 @@ public class SelfRoleCommand implements SlashCommand {
             case "send" -> {
 
                 event.deferReply(true).queue();
-                val category = SelfRoleCategory.valueOf(event.getOption("category", OptionMapping::getAsString));
-                val embedId = event.getOption("embedid", OptionMapping::getAsString);
-                val multiAction = event.getOption("multiselect", OptionMapping::getAsBoolean);
-                val channel = Objects.requireNonNull(event.getOption("channel", OptionMapping::getAsChannel)).asGuildMessageChannel();
+                SelfRoleCategory category = SelfRoleCategory.valueOf(event.getOption("category", OptionMapping::getAsString));
+                String embedId = event.getOption("embedid", OptionMapping::getAsString);
+                Boolean multiAction = event.getOption("multiselect", OptionMapping::getAsBoolean);
+                GuildMessageChannel channel = Objects.requireNonNull(event.getOption("channel", OptionMapping::getAsChannel)).asGuildMessageChannel();
 
-                val optionalEmbed = this.embedDatabase.getEmbed(embedId);
+                CompletableFuture<Optional<Embed>> futureEmbed = this.embedDatabase.getEmbed(embedId);
 
-                if (optionalEmbed.isEmpty()) {
+                try {
+                    Optional<Embed> optionalEmbed = futureEmbed.get();
+
+                    if (optionalEmbed.isEmpty()) {
+                        event.getHook().editOriginalEmbeds(new EmbedBuilder()
+                                .setAuthor("SelfRoles")
+                                .setDescription("Die angegebene Embed Id ist in der Datenbank nicht bekannt! Hast du dich eventuell bei **" + embedId + "* vertippt?")
+                                .setColor(Color.RED)
+                                .build()).queue();
+                        return;
+                    }
+
+                    Embed embed = optionalEmbed.get();
+
+                    assert multiAction != null;
+                    StringSelectMenu selectMenu = SelfRoleCategory.buildMenu(category, this.selfRoleDatabase, multiAction.booleanValue());
+
+                    channel.sendMessageEmbeds(embed.buildEmbed().build()).addActionRow(selectMenu).queue();
+
                     event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                            .setAuthor("SelfRoles")
-                            .setDescription("Die angegebene Embed Id ist in der Datenbank nicht bekannt! Hast du dich eventuell bei **" + embedId + "* vertippt?")
-                            .setColor(Color.RED)
+                            .setAuthor("Selfroles")
+                            .setDescription("Das Selfroles Embed wurde erfolgreich in den Channel gesendet!")
+                            .setColor(Color.GREEN)
                             .build()).queue();
-                    return;
+
+                } catch (InterruptedException | ExecutionException e) {
+                    e.fillInStackTrace();
                 }
-
-                val embed = optionalEmbed.get();
-
-                assert multiAction != null;
-                val selectMenu = SelfRoleCategory.buildMenu(category, this.selfRoleDatabase, multiAction.booleanValue());
-
-                channel.sendMessageEmbeds(embed.buildEmbed().build()).addActionRow(selectMenu).queue();
-
-                event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                        .setAuthor("Selfroles")
-                        .setDescription("Das Selfroles Embed wurde erfolgreich in den Channel gesendet!")
-                        .setColor(Color.GREEN)
-                        .build()).queue();
 
             }
         }
