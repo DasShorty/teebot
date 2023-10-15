@@ -1,13 +1,11 @@
 package de.dasshorty.teebot.selfroles;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
-@RequiredArgsConstructor
+import java.util.List;
+
+
 public enum SelfRoleCategory {
 
     COLOR("Farben"),
@@ -15,14 +13,19 @@ public enum SelfRoleCategory {
     GENDER("Geschlecht"),
     PRONOUN("Pronomen"),
     SEXUALITY("Sexualität");
+
     private final String displayName;
+
+    SelfRoleCategory(String displayName) {
+        this.displayName = displayName;
+    }
 
     @NotNull
     static StringSelectMenu buildMenu(SelfRoleCategory category, @NotNull SelfRoleDatabase database, boolean multiAction) {
 
-        val builder = StringSelectMenu.create("self-roles");
+        StringSelectMenu.Builder builder = StringSelectMenu.create("self-roles");
 
-        val allRolesFromCategory = database.getAllSelfRolesByCategory(category);
+        List<SelfRole> allRolesFromCategory = database.getAllSelfRolesByCategory(category);
 
         allRolesFromCategory.forEach(selfRole -> builder.addOption(selfRole.name(), selfRole.id()));
 
@@ -30,6 +33,10 @@ public enum SelfRoleCategory {
             builder.setRequiredRange(1, 25);
 
         return builder.build();
+    }
+
+    public String getDisplayName() {
+        return this.displayName;
     }
 
 }

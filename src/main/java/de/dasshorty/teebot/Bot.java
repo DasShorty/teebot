@@ -22,6 +22,8 @@ import de.dasshorty.teebot.embedcreator.steps.step4.thumbnail.AddThumbnailButton
 import de.dasshorty.teebot.embedcreator.steps.step4.thumbnail.ThumbnailModal;
 import de.dasshorty.teebot.embedcreator.steps.step4.timestamp.AddTimstampButton;
 import de.dasshorty.teebot.embedcreator.steps.step5.FinishEmbedButton;
+import de.dasshorty.teebot.jtc.JTCDatabase;
+import de.dasshorty.teebot.jtc.JTCVoiceListener;
 import de.dasshorty.teebot.membercounter.UpdateMemberCounter;
 import de.dasshorty.teebot.selfroles.SelfRoleCommand;
 import de.dasshorty.teebot.selfroles.SelfRoleDatabase;
@@ -29,30 +31,36 @@ import de.dasshorty.teebot.twitch.TwitchBot;
 import de.dasshorty.teebot.twitch.TwitchCommand;
 import de.dasshorty.teebot.twitch.TwitchDatabase;
 import de.dasshorty.teebot.welcomeembed.SendWelcomeEmbed;
-import lombok.SneakyThrows;
-import lombok.val;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 public class Bot {
-    @SneakyThrows
-    public static void main(String[] args) {
 
-        val builder = JDABuilder.createDefault(System.getenv("BOT_TOKEN"));
+    public static void main(String[] args) throws InterruptedException {
 
-        val mongoHandler = new MongoHandler();
+        JDABuilder builder = JDABuilder.createDefault(System.getenv("BOT_TOKEN"));
 
-        builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_MEMBERS);
-        builder.enableCache(CacheFlag.ONLINE_STATUS, CacheFlag.ACTIVITY, CacheFlag.EMOJI, CacheFlag.MEMBER_OVERRIDES);
+        MongoHandler mongoHandler = new MongoHandler();
 
-        val api = new APIHandler(builder);
+        builder.setMemberCachePolicy(MemberCachePolicy.ALL);
 
-        builder.addEventListeners(new SendWelcomeEmbed());
+        builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_PRESENCES,
+                GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_VOICE_STATES);
+        builder.enableCache(CacheFlag.ONLINE_STATUS, CacheFlag.ACTIVITY, CacheFlag.EMOJI, CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE);
 
-        val jda = builder.build().awaitReady();
+        APIHandler api = new APIHandler(builder);
 
-        val embedDatabase = new EmbedDatabase(mongoHandler);
+        JTCDatabase jtcDatabase = new JTCDatabase(mongoHandler);
+
+        builder.addEventListeners(new SendWelcomeEmbed(), new JTCVoiceListener(jtcDatabase));
+
+        JDA jda = builder.build().awaitReady();
+
+        EmbedDatabase embedDatabase = new EmbedDatabase(mongoHandler);
 
         api.addSlashCommand(new EmbedCommand(embedDatabase));
 
@@ -86,18 +94,18 @@ public class Bot {
 
         api.addButton(new FinishEmbedButton(embedDatabase));
 
-        val selfRoleDatabase = new SelfRoleDatabase(mongoHandler);
+        SelfRoleDatabase selfRoleDatabase = new SelfRoleDatabase(mongoHandler);
         api.addSlashCommand(new SelfRoleCommand(selfRoleDatabase, embedDatabase));
 
         api.addSlashCommand(new AnnouncementCommand(embedDatabase));
 
-        val guild = jda.getGuilds().get(0);
+        Guild guild = jda.getGuilds().get(0);
 
         // twitch
 
-        val twitchDatabase = new TwitchDatabase(mongoHandler);
+        TwitchDatabase twitchDatabase = new TwitchDatabase(mongoHandler);
 
-        val twitchBot = new TwitchBot(twitchDatabase, guild);
+        TwitchBot twitchBot = new TwitchBot(twitchDatabase, guild);
 
         api.addSlashCommand(new TwitchCommand(twitchBot));
 

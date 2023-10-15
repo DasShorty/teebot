@@ -4,20 +4,24 @@ import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.modal.Modal;
 import de.dasshorty.teebot.embedcreator.Embed;
 import de.dasshorty.teebot.embedcreator.EmbedDatabase;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 
 import java.awt.*;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-@RequiredArgsConstructor
 public class ThumbnailModal implements Modal {
 
     private final EmbedDatabase embedDatabase;
+
+    public ThumbnailModal(EmbedDatabase embedDatabase) {
+        this.embedDatabase = embedDatabase;
+    }
 
     @Override
     public String id() {
@@ -26,7 +30,7 @@ public class ThumbnailModal implements Modal {
 
     @Override
     public void onExecute(ModalInteractionEvent event) {
-        val member = event.getMember();
+        Member member = event.getMember();
         assert null != member;
 
         if (!(Roles.hasMemberRole(member, Roles.ADMIN) || Roles.hasMemberRole(member, Roles.DEVELOPER))) {
@@ -35,35 +39,42 @@ public class ThumbnailModal implements Modal {
             return;
         }
 
-        val embedId = this.embedDatabase.getMemberEmbedMap().get(member.getId());
+        String embedId = this.embedDatabase.getMemberEmbedMap().get(member.getId());
 
         event.deferReply(true).queue();
 
-        val optionalEmbed = this.embedDatabase.getEmbed(embedId);
+        CompletableFuture<Optional<Embed>> future = this.embedDatabase.getEmbed(embedId);
 
-        if (optionalEmbed.isEmpty()) {
-            event.getHook().editOriginal("Etwas ist schiefgelaufen! Bitte Melde dies an <@&1159086761763414046> (ThumbnailModal.java:45)").queue();
-            return;
+        try {
+            Optional<Embed> optionalEmbed = future.get();
+
+            if (optionalEmbed.isEmpty()) {
+                event.getHook().editOriginal("Etwas ist schiefgelaufen! Bitte Melde dies an <@&1159086761763414046> (ThumbnailModal.java:45)").queue();
+                return;
+            }
+
+            Embed embed = optionalEmbed.get();
+
+            String url = Objects.requireNonNull(event.getValue("url")).getAsString();
+
+            Embed.Style style = embed.getStyle();
+
+            embed.setStyle(new Embed.Style(style.color(), style.image(), url, style.timestamp()));
+
+            this.embedDatabase.storeEmbed(embed);
+
+            event.getHook().editOriginalEmbeds(new EmbedBuilder()
+                            .setAuthor("Embed Creator")
+                            .setDescription("Thumbnail wurde gesetzt!")
+                            .setColor(Color.WHITE)
+                            .setTimestamp(Instant.now())
+                            .setFooter("Step 4 / 4")
+                            .build())
+                    .queue(message -> this.embedDatabase.getMemberEmbedMap().put(member.getId(), embedId));
+
+        } catch (InterruptedException | ExecutionException e) {
+            e.fillInStackTrace();
         }
-
-        val embed = optionalEmbed.get();
-
-        val url = Objects.requireNonNull(event.getValue("url")).getAsString();
-
-        val style = embed.getStyle();
-
-        embed.setStyle(new Embed.Style(style.color(), style.image(), url, style.timestamp()));
-
-        this.embedDatabase.storeEmbed(embed);
-
-        event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                        .setAuthor("Embed Creator")
-                        .setDescription("Thumbnail wurde gesetzt!")
-                        .setColor(Color.WHITE)
-                        .setTimestamp(Instant.now())
-                        .setFooter("Step 4 / 4")
-                        .build())
-                .queue(message -> this.embedDatabase.getMemberEmbedMap().put(member.getId(), embedId));
 
     }
 }

@@ -4,10 +4,10 @@ import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
-import lombok.Getter;
-import lombok.val;
+import com.github.twitch4j.helix.domain.Stream;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 import java.awt.*;
@@ -15,14 +15,13 @@ import java.time.Instant;
 
 public class TwitchBot {
 
-    @Getter
     private final TwitchDatabase twitchDatabase;
     private TwitchClient client;
 
     public TwitchBot(TwitchDatabase twitchDatabase, Guild guild) {
         this.twitchDatabase = twitchDatabase;
 
-        val twitchAccessToken = System.getenv("TWITCH_ACCESS_TOKEN");
+        String twitchAccessToken = System.getenv("TWITCH_ACCESS_TOKEN");
         this.client = TwitchClientBuilder
                 .builder()
                 .withDefaultAuthToken(new OAuth2Credential("thisteebot", twitchAccessToken))
@@ -38,14 +37,14 @@ public class TwitchBot {
                     System.out.println("Stream startet von " + channelGoLiveEvent.getChannel().getName());
 
 
-                    val textChannelById = guild.getTextChannelById("1160168436224241705");
+                    TextChannel textChannelById = guild.getTextChannelById("1160168436224241705");
 
-                    val stream = channelGoLiveEvent.getStream();
-                    val twitchName = channelGoLiveEvent.getChannel().getName();
+                    Stream stream = channelGoLiveEvent.getStream();
+                    String twitchName = channelGoLiveEvent.getChannel().getName();
 
                     this.client.getChat().sendMessage(twitchName, "Du bist Live gegangen! Eine benachrichtigung wurde in den Livechat gesendet!");
 
-                    val url = "https://twitch.tv/" + twitchName;
+                    String url = "https://twitch.tv/" + twitchName;
                     assert textChannelById != null;
                     textChannelById.sendMessageEmbeds(new EmbedBuilder()
                             .setAuthor(twitchName, url)
@@ -59,6 +58,10 @@ public class TwitchBot {
                     System.out.println(twitchName);
 
                 });
+    }
+
+    public TwitchDatabase getTwitchDatabase() {
+        return this.twitchDatabase;
     }
 
     private void loadTwitchChannel() {

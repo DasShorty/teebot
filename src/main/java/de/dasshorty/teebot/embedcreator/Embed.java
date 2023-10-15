@@ -1,19 +1,12 @@
 package de.dasshorty.teebot.embedcreator;
 
 import de.dasshorty.teebot.api.ToGson;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.val;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
 import java.time.Instant;
 import java.util.List;
 
-@AllArgsConstructor
-@Getter
-@Setter
 public class Embed implements ToGson {
 
     private String embedId;
@@ -23,46 +16,103 @@ public class Embed implements ToGson {
     private Footer footer;
     private Style style;
 
-   @SuppressWarnings("OverlyLongMethod")
-   public EmbedBuilder buildEmbed() {
+    public Embed(String embedId, Author author, Content content, Fields fields, Footer footer, Style style) {
+        this.embedId = embedId;
+        this.author = author;
+        this.content = content;
+        this.fields = fields;
+        this.footer = footer;
+        this.style = style;
+    }
 
-        val sendEmbed = new EmbedBuilder();
+    public String getEmbedId() {
+        return this.embedId;
+    }
 
-        val title = this.content.title();
+    public void setEmbedId(String embedId) {
+        this.embedId = embedId;
+    }
+
+    public Author getAuthor() {
+        return this.author;
+    }
+
+    public void setAuthor(Author author) {
+        this.author = author;
+    }
+
+    public Content getContent() {
+        return this.content;
+    }
+
+    public void setContent(Content content) {
+        this.content = content;
+    }
+
+    public Fields getFields() {
+        return this.fields;
+    }
+
+    public void setFields(Fields fields) {
+        this.fields = fields;
+    }
+
+    public Footer getFooter() {
+        return this.footer;
+    }
+
+    public void setFooter(Footer footer) {
+        this.footer = footer;
+    }
+
+    public Style getStyle() {
+        return this.style;
+    }
+
+    public void setStyle(Style style) {
+        this.style = style;
+    }
+
+    @SuppressWarnings("OverlyLongMethod")
+    public EmbedBuilder buildEmbed() {
+
+        EmbedBuilder sendEmbed = new EmbedBuilder();
+
+        String title = this.content.title();
         if (null != title)
             sendEmbed.setTitle(title);
 
-        val description = this.content.description();
+        String description = this.content.description();
         if (null != description)
             sendEmbed.setDescription(description);
 
-        val authorText = this.author.authorText();
+        String authorText = this.author.authorText();
         if (null != authorText)
             sendEmbed.setAuthor(authorText);
 
-        val authorLink = this.author.authorLink();
+        String authorLink = this.author.authorLink();
         if (null != authorText && null != authorLink)
             sendEmbed.setAuthor(authorText, authorLink);
 
-        val authorImage = this.author.authorImage();
+        String authorImage = this.author.authorImage();
         if (null != authorText && null != authorLink && null != authorImage)
             sendEmbed.setAuthor(authorText, authorLink, authorImage);
 
-        val fields = this.fields.fields();
+        List<Field> fields = this.fields.fields();
         if (fields != null)
             fields.forEach(field -> sendEmbed.addField(field.fieldTitle(), field.fieldContent(), false));
 
-        val style = this.style;
+        Style style = this.style;
 
-        val thumbnail = style.thumbnail();
+        String thumbnail = style.thumbnail();
         if (thumbnail != null)
             sendEmbed.setThumbnail(thumbnail);
 
-        val image = style.image();
+        String image = style.image();
         if (image != null)
             sendEmbed.setImage(image);
 
-        val color = style.color();
+        String color = style.color();
         if (color != null) {
 
             Color embedColor = Color.WHITE;
@@ -80,11 +130,11 @@ public class Embed implements ToGson {
             sendEmbed.setColor(embedColor);
         }
 
-        val timestamp = style.timestamp();
+        Long timestamp = style.timestamp();
         if (timestamp != null)
             sendEmbed.setTimestamp(Instant.ofEpochMilli(timestamp.longValue()));
 
-        val footerText = this.getFooter().footerText();
+        String footerText = this.getFooter().footerText();
         if (footerText != null)
             sendEmbed.setFooter(footerText);
 

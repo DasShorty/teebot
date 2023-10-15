@@ -2,32 +2,38 @@ package de.dasshorty.teebot.embedcreator;
 
 import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import de.dasshorty.teebot.api.mongo.MongoHandler;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
-@RequiredArgsConstructor
 public class EmbedDatabase {
-
     private static final String COLLECTION_NAME = "embeds";
     private static final Gson GSON = new Gson();
-    @Getter
     private final Map<String, String> memberEmbedMap = new HashMap<>();
     private final MongoHandler mongoHandler;
 
-    private void insertEmbed(final Embed embed) {
+    public EmbedDatabase(MongoHandler mongoHandler) {
+        this.mongoHandler = mongoHandler;
+    }
+
+    public Map<String, String> getMemberEmbedMap() {
+        return this.memberEmbedMap;
+    }
+
+    private void insertEmbed(Embed embed) {
+
         this.getCollection().insertOne(GSON.fromJson(embed.toGson(), Document.class));
     }
 
-    private void updateEmbed(final Embed embed) {
+    private void updateEmbed(Embed embed) {
 
-        val list = List.of(
+        List<Bson> list = List.of(
                 Updates.set("author", embed.getAuthor()),
                 Updates.set("content", embed.getContent()),
                 Updates.set("fields", embed.getFields()),
@@ -40,18 +46,19 @@ public class EmbedDatabase {
 
     List<Embed> embeds() {
 
-        val cursor = this.getCollection().find().cursor();
 
-        val list = new ArrayList<Embed>();
+        MongoCursor<Document> cursor = this.getCollection().find().cursor();
+
+        List<Embed> list = new ArrayList<>();
 
         while (cursor.hasNext()) {
 
-            val document = cursor.next();
+            Document document = cursor.next()
 
             if (document.isEmpty())
                 continue;
 
-            val embed = GSON.fromJson(document.toJson(), Embed.class);
+            Embed embed = GSON.fromJson(document.toJson(), Embed.class);
 
             list.add(embed);
         }
@@ -59,39 +66,50 @@ public class EmbedDatabase {
         return list;
     }
 
-    public void deleteEmbed(final String embedId) {
+    void deleteEmbed(String embedId) {
 
         this.getCollection().deleteOne(Filters.eq("embedId", embedId));
 
     }
 
-    public void storeEmbed(final Embed embed) {
+    private MongoCollection<Document> getCollection() {
+        return this.mongoHandler.collection(COLLECTION_NAME);
+    }
+
+    public void storeEmbed(Embed embed) {
+
         if (this.isEmbedEmpty(embed.getEmbedId()))
             this.insertEmbed(embed);
         else
             this.updateEmbed(embed);
-
     }
 
     private boolean isEmbedEmpty(String embedId) {
         return null == this.getCollection().find(Filters.eq("embedId", embedId)).first();
     }
 
-    public Optional<Embed> getEmbed(String embedId) {
+    public CompletableFuture<Optional<Embed>> getEmbed(String embedId) {
 
-        if (this.isEmbedEmpty(embedId))
-            return Optional.empty();
+        CompletableFuture<Optional<Embed>> future = new CompletableFuture<>();
 
-        val embedDocument = this.getCollection().find(Filters.eq("embedId", embedId)).first();
+        if (this.isEmbedEmpty(embedId)) {
 
-        if (null == embedDocument || embedDocument.isEmpty())
-            return Optional.empty();
+            future.complete(Optional.empty());
+            return future;
 
-        return Optional.of(GSON.fromJson(embedDocument.toJson(), Embed.class));
-    }
+        }
 
-    private MongoCollection<Document> getCollection() {
-        return this.mongoHandler.collection(COLLECTION_NAME);
+        Document document = this.getCollection().find(Filters.eq("embedId", embedId)).first();
+
+        if (document == null || document.isEmpty()) {
+            future.complete(Optional.empty());
+            return future;
+        }
+
+        future.complete(Optional.of(GSON.fromJson(document.toJson(), Embed.class)));
+
+
+        return future;
     }
 
 

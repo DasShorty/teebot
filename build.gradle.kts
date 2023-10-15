@@ -17,8 +17,6 @@ dependencies {
 
     // 3rd party api's
     implementation("com.google.code.gson:gson:2.10.1")
-    implementation("org.projectlombok:lombok:1.18.28")
-    annotationProcessor("org.projectlombok:lombok:1.18.28")
 
     implementation("com.github.twitch4j:twitch4j:1.17.0")
 

@@ -2,10 +2,12 @@ package de.dasshorty.teebot.announcement;
 
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.commands.slashcommands.SlashCommand;
+import de.dasshorty.teebot.embedcreator.Embed;
 import de.dasshorty.teebot.embedcreator.EmbedDatabase;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -14,12 +16,17 @@ import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 
 import java.awt.*;
 import java.time.Instant;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 
-@RequiredArgsConstructor
 public class AnnouncementCommand implements SlashCommand {
 
     private final EmbedDatabase embedDatabase;
+
+    public AnnouncementCommand(EmbedDatabase embedDatabase) {
+        this.embedDatabase = embedDatabase;
+    }
 
     @Override
     public CommandDataImpl commandData() {
@@ -32,7 +39,7 @@ public class AnnouncementCommand implements SlashCommand {
     @Override
     public void onExecute(SlashCommandInteractionEvent event) {
 
-        val member = event.getMember();
+        Member member = event.getMember();
 
         assert null != member;
 
@@ -45,11 +52,13 @@ public class AnnouncementCommand implements SlashCommand {
 
         event.deferReply(true).queue();
 
-        val channel = event.getOption("channel", OptionMapping::getAsChannel).asGuildMessageChannel();
-        val embedId = event.getOption("embedid", OptionMapping::getAsString);
-        val pingRole = event.getOption("role", OptionMapping::getAsRole);
+        GuildMessageChannel channel = event.getOption("channel", OptionMapping::getAsChannel).asGuildMessageChannel();
+        String embedId = event.getOption("embedid", OptionMapping::getAsString);
+        Role pingRole = event.getOption("role", OptionMapping::getAsRole);
 
-        val optionalEmbed = this.embedDatabase.getEmbed(embedId);
+        CompletableFuture<Optional<Embed>> future = this.embedDatabase.getEmbed(embedId);
+
+        Optional<Embed> optionalEmbed = future.join();
 
         if (optionalEmbed.isEmpty()) {
             event.getHook().editOriginalEmbeds(new EmbedBuilder()

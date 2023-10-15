@@ -3,19 +3,21 @@ package de.dasshorty.teebot.embedcreator.steps.step3;
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.buttons.Button;
 import de.dasshorty.teebot.embedcreator.EmbedDatabase;
-import lombok.RequiredArgsConstructor;
-import lombok.val;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 
 import java.awt.*;
 import java.time.Instant;
 
-@RequiredArgsConstructor
 public class FooterButton implements Button {
 
     private final EmbedDatabase embedDatabase;
+
+    public FooterButton(EmbedDatabase embedDatabase) {
+        this.embedDatabase = embedDatabase;
+    }
 
     @Override
     public String id() {
@@ -25,7 +27,7 @@ public class FooterButton implements Button {
     @Override
     public void onExecute(ButtonInteractionEvent event) {
 
-        val member = event.getMember();
+        Member member = event.getMember();
         assert null != member;
 
         if (!(Roles.hasMemberRole(member, Roles.ADMIN) || Roles.hasMemberRole(member, Roles.DEVELOPER))) {
@@ -34,7 +36,7 @@ public class FooterButton implements Button {
             return;
         }
 
-        val embedId = this.embedDatabase.getMemberEmbedMap().get(member.getId());
+        String embedId = this.embedDatabase.getMemberEmbedMap().get(member.getId());
 
         event.deferReply(true).queue();
 
