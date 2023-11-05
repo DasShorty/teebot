@@ -64,7 +64,7 @@ public class ChangeTitleButton implements Button {
                         .setRequiredRange(5, 50)
                         .setRequired(true)
                         .setPlaceholder(event.getChannel().getName())
-                        .build()).build()
+                        .build()).build();
 
         event.replyModal(modal).queue();
     }

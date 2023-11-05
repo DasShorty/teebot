@@ -29,6 +29,11 @@ import de.dasshorty.teebot.jtc.button.EnterNewTitleModal;
 import de.dasshorty.teebot.membercounter.UpdateMemberCounter;
 import de.dasshorty.teebot.selfroles.SelfRoleCommand;
 import de.dasshorty.teebot.selfroles.SelfRoleDatabase;
+import de.dasshorty.teebot.tickets.TicketCommand;
+import de.dasshorty.teebot.tickets.TicketDatabase;
+import de.dasshorty.teebot.tickets.create.CreateTicketButton;
+import de.dasshorty.teebot.tickets.create.DescriptionTicketModal;
+import de.dasshorty.teebot.tickets.create.SelectTicketReasonMenu;
 import de.dasshorty.teebot.twitch.TwitchBot;
 import de.dasshorty.teebot.twitch.TwitchCommand;
 import de.dasshorty.teebot.twitch.TwitchDatabase;
@@ -103,6 +108,14 @@ public class Bot {
 
         Guild guild = jda.getGuilds().get(0);
 
+
+        // Tickets
+        TicketDatabase ticketDatabase = new TicketDatabase(mongoHandler);
+        api.addSlashCommand(new TicketCommand(embedDatabase));
+        api.addButton(new CreateTicketButton());
+        api.addStringMenu(new SelectTicketReasonMenu(ticketDatabase));
+        api.addModal(new DescriptionTicketModal(ticketDatabase));
+
         // twitch
 
         TwitchDatabase twitchDatabase = new TwitchDatabase(mongoHandler);
@@ -118,5 +131,6 @@ public class Bot {
         // JTC
         api.addButton(new ChangeTitleButton(jtcDatabase));
         api.addModal(new EnterNewTitleModal(jtcDatabase));
+
     }
 }
