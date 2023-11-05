@@ -36,7 +36,7 @@ public class SelfRoleDatabase {
             return false;
         }
 
-        return this.collection().insertOne(GSON.fromJson(selfRole.toGson(), Document.class)).wasAcknowledged()
+        return this.collection().insertOne(GSON.fromJson(selfRole.toGson(), Document.class)).wasAcknowledged();
     }
 
     void removeSelfRole(String roleId) {

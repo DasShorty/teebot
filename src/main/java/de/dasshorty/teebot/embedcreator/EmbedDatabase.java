@@ -13,7 +13,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class EmbedDatabase {
-    private static final String COLLECTION_NAME = "embeds";
     private static final Gson GSON = new Gson();
     private final Map<String, String> memberEmbedMap = new HashMap<>();
     private final MongoHandler mongoHandler;
@@ -53,7 +52,7 @@ public class EmbedDatabase {
 
         while (cursor.hasNext()) {
 
-            Document document = cursor.next()
+            Document document = cursor.next();
 
             if (document.isEmpty())
                 continue;
@@ -73,7 +72,7 @@ public class EmbedDatabase {
     }
 
     private MongoCollection<Document> getCollection() {
-        return this.mongoHandler.collection(COLLECTION_NAME);
+        return this.mongoHandler.collection("embeds");
     }
 
     public void storeEmbed(Embed embed) {

@@ -5,6 +5,8 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public enum Roles {
 
     ADMIN("1159074658168090726"),
@@ -25,12 +27,23 @@ public enum Roles {
         this.roleId = roleId;
     }
 
-    public static boolean hasMemberRole(@NotNull Member member, @NotNull Roles roles) {
+    public static boolean hasMemberRole(@NotNull Member member, @NotNull Roles... roles) {
 
         Guild guild = member.getGuild();
-        Role roleById = guild.getRoleById(roles.roleId);
 
-        return member.getRoles().contains(roleById);
+        AtomicBoolean bool = new AtomicBoolean(false);
+
+        for (Roles role : roles) {
+
+            Role roleById = guild.getRoleById(role.roleId);
+            if (member.getRoles().contains(roleById))
+                bool.set(true);
+
+
+        }
+
+
+        return bool.get();
     }
 
     public String getRoleId() {

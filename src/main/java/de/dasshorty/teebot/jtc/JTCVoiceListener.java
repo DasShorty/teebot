@@ -26,25 +26,34 @@ public class JTCVoiceListener extends ListenerAdapter {
         this.jtcDatabase = jtcDatabase;
     }
 
+    private static void createCategory(@NotNull Guild guild, Consumer<Category> consumer) {
+        guild.createCategory("\uD83D\uDD0A│TEMP TALKS").setPosition(1).queue(consumer);
+    }
+
+    private static void logInChannel(Guild guild, String message) {
+
+        guild.getTextChannelById("1163056990369628180").sendMessageEmbeds(new EmbedBuilder()
+                .setDescription(message)
+                .setTimestamp(Instant.now())
+                .build()).queue();
+
+    }
+
     @Override
     public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
 
         Member member = event.getMember();
 
-        System.out.println(member.getEffectiveName());
-
-        if (event.getChannelJoined() == null) {
+        if (event.getChannelLeft() != null) {
             this.removeVoiceChannel(event, member);
-            return;
+        } else if (event.getChannelJoined() != null) {
+            this.addVoiceChannel(event, member);
         }
-
-        System.out.println(1);
-
-        this.addVoiceChannel(event, member);
-
     }
 
     private void addVoiceChannel(GuildVoiceUpdateEvent event, Member member) {
+
+        System.out.println("Channel joined!");
 
         assert event.getChannelJoined() != null;
 
@@ -55,13 +64,15 @@ public class JTCVoiceListener extends ListenerAdapter {
 
         this.createTalk(guild, member, voiceChannel -> {
 
-            this.logInChannel(guild, "Channel " + voiceChannel.getId() + " has been created!");
+            this.logInChannel(guild, "Channel " + voiceChannel.getName() + " has been created!");
 
             guild.moveVoiceMember(member, voiceChannel).queue();
         });
     }
 
     private void removeVoiceChannel(GuildVoiceUpdateEvent event, Member member) {
+
+        System.out.println("Channel left");
 
         AudioChannelUnion channelLeft = event.getChannelLeft();
         assert channelLeft != null;
@@ -82,8 +93,10 @@ public class JTCVoiceListener extends ListenerAdapter {
 
         assert parentCategory != null;
 
-        if (parentCategory.getChannels().size() == 1)
+        if (parentCategory.getChannels().size() == 1) {
+            this.categories.remove(parentCategory);
             parentCategory.delete().queue();
+        }
 
     }
 
@@ -127,19 +140,6 @@ public class JTCVoiceListener extends ListenerAdapter {
 
             onChannelCreated.accept(voiceChannel);
         });
-    }
-
-    private static void createCategory(@NotNull Guild guild, Consumer<Category> consumer) {
-        guild.createCategory("\uD83D\uDD0A│TEMP TALKS").setPosition(3).queue(consumer);
-    }
-
-    private static void logInChannel(Guild guild, String message) {
-
-        guild.getTextChannelById("1163056990369628180").sendMessageEmbeds(new EmbedBuilder()
-                .setDescription(message)
-                .setTimestamp(Instant.now())
-                .build()).queue();
-
     }
 
 }

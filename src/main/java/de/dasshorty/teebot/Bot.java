@@ -24,6 +24,8 @@ import de.dasshorty.teebot.embedcreator.steps.step4.timestamp.AddTimstampButton;
 import de.dasshorty.teebot.embedcreator.steps.step5.FinishEmbedButton;
 import de.dasshorty.teebot.jtc.JTCDatabase;
 import de.dasshorty.teebot.jtc.JTCVoiceListener;
+import de.dasshorty.teebot.jtc.button.ChangeTitleButton;
+import de.dasshorty.teebot.jtc.button.EnterNewTitleModal;
 import de.dasshorty.teebot.membercounter.UpdateMemberCounter;
 import de.dasshorty.teebot.selfroles.SelfRoleCommand;
 import de.dasshorty.teebot.selfroles.SelfRoleDatabase;
@@ -112,5 +114,9 @@ public class Bot {
         new UpdateMemberCounter(guild);
 
         api.getCommandHandler().updateCommands(guild);
+
+        // JTC
+        api.addButton(new ChangeTitleButton(jtcDatabase));
+        api.addModal(new EnterNewTitleModal(jtcDatabase));
     }
 }

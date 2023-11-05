@@ -16,7 +16,7 @@ public class JTCDatabase {
         this.mongoHandler = mongoHandler;
     }
 
-    Optional<JTC> getJTC(String channelId) {
+    public Optional<JTC> getJTC(String channelId) {
 
         Document document = this.collection().find(Filters.eq("channelId", channelId)).first();
 
@@ -31,18 +31,17 @@ public class JTCDatabase {
         return this.mongoHandler.collection("jtc");
     }
 
-    void addJTC(JTC jtc) {
+    public void addJTC(JTC jtc) {
         this.collection().insertOne(GSON.fromJson(GSON.toJson(jtc), Document.class));
     }
 
-    void removeJTC(String channelId) {
+    public void removeJTC(String channelId) {
         this.collection().deleteOne(Filters.eq("channelId", channelId));
     }
 
-    boolean isJTCExisting(String channelId) {
+    public boolean isJTCExisting(String channelId) {
         Document document = this.collection().find(Filters.eq("channelId", channelId)).first();
-
-        return document == null;
+        return document != null;
     }
 
 
