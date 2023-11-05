@@ -12,12 +12,6 @@ import java.util.Objects;
 
 public class SelfRoleMenu implements StringSelectionMenu {
 
-    private final SelfRoleDatabase selfRoleDatabase;
-
-    public SelfRoleMenu(SelfRoleDatabase selfRoleDatabase) {
-        this.selfRoleDatabase = selfRoleDatabase;
-    }
-
     @Override
     public String id() {
         return "self-roles";
