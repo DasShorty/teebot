@@ -68,6 +68,9 @@ public class DescriptionTicketModal implements Modal {
 
             assert member != null;
 
+            // stop inviting random users
+            threadChannel.getManager().setInvitable(true).queue();
+
             threadChannel.sendMessage(member.getAsMention()).addEmbeds(new EmbedBuilder()
                             .setAuthor("Tickets")
                             .setDescription("Ein Teammitglied wird sich demnächst um dich kümmern. Falls du dein Problem noch nicht fertig Beschreiben konntest, kannst du nun auch Bilder & Videos mit in den Text Kanal schicken.")
