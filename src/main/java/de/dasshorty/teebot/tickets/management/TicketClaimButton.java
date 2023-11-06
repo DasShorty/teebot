@@ -1,4 +1,4 @@
-package de.dasshorty.teebot.tickets.open;
+package de.dasshorty.teebot.tickets.management;
 
 import de.dasshorty.teebot.api.buttons.Button;
 import de.dasshorty.teebot.tickets.Ticket;
