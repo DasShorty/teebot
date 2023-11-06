@@ -8,10 +8,12 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
+import net.dv8tion.jda.api.managers.channel.concrete.ThreadChannelManager;
 
 import java.awt.*;
 import java.time.Instant;
@@ -54,18 +56,19 @@ public class DescriptionTicketModal implements Modal {
 
         TicketReason ticketReason = optionalTicketReason.get();
 
-        Category category = Objects.requireNonNull(event.getGuild()).getCategoryById("1170764881721561178");
+        TextChannel ticketChannel = Objects.requireNonNull(event.getGuild()).getTextChannelById("1159846560549576817");
 
         long ticketId = this.ticketDatabase.getCreatedTickets() + 1L;
 
-        assert category != null;
-        category.createTextChannel(String.valueOf(ticketId)).queue(textChannel -> {
-            TextChannelManager manager = textChannel.getManager();
+        assert ticketChannel != null;
+
+        TicketDatabase.sendTicketNotification(event.getGuild(), ticketReason, ticketId);
+
+        ticketChannel.createThreadChannel(String.valueOf(ticketId), true).queue(threadChannel -> {
 
             assert member != null;
-            manager.putMemberPermissionOverride(member.getIdLong(), List.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND, Permission.MESSAGE_ATTACH_FILES), List.of()).queue();
 
-            textChannel.sendMessage(member.getAsMention()).addEmbeds(new EmbedBuilder()
+            threadChannel.sendMessage(member.getAsMention()).addEmbeds(new EmbedBuilder()
                             .setAuthor("Tickets")
                             .setDescription("Ein Teammitglied wird sich demnächst um dich kümmern. Falls du dein Problem noch nicht fertig Beschreiben konntest, kannst du nun auch Bilder & Videos mit in den Text Kanal schicken.")
                             .setColor(Color.white)
@@ -75,12 +78,17 @@ public class DescriptionTicketModal implements Modal {
 
                             .setTimestamp(Instant.now())
                             .build())
-                    .addActionRow(Button.primary("ticket-close", "Ticket schließen"),
+                    .addActionRow(Button.danger("ticket-close", "Ticket schließen"),
                             Button.secondary("ticket-history", "Transcript anzeigen")
                     )
+                    .addActionRow(Button.secondary("ticket-add-team", "Weitere Teammitglieder anfragen"))
                     .queue();
 
-            this.ticketDatabase.insertTicket(new Ticket(ticketId, member.getId(), textChannel.getId(), ticketReason, ticketDescription, List.of()));
+            this.ticketDatabase.insertTicket(new Ticket(ticketId, member.getId(), threadChannel.getId(), ticketReason, ticketDescription, List.of()));
+
+
+            hook.editOriginal("Dein Ticket wurde in " + threadChannel.getAsMention() + " erstellt!").queue();
+
         });
 
 

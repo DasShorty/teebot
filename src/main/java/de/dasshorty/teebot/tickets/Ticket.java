@@ -1,12 +1,11 @@
 package de.dasshorty.teebot.tickets;
 
 import com.google.gson.Gson;
-import net.dv8tion.jda.api.entities.Member;
 import org.bson.Document;
 
 import java.util.List;
 
-public record Ticket(long id, String opener, String channelId, TicketReason reason, String description,
+public record Ticket(long ticketId, String opener, String threadId, TicketReason reason, String description,
                      List<TicketMessageData> messages) {
 
     public static Ticket fromJson(String json) {
