@@ -88,6 +88,18 @@ public class TicketDatabase {
         return this.collection().countDocuments();
     }
 
+    public void updateTicket(Ticket ticket) {
+
+        if (!this.isTicketPersist(ticket.ticketId())) {
+            this.insertTicket(ticket);
+            return;
+        }
+
+        this.collection().deleteOne(Filters.eq("ticketId", ticket.ticketId()));
+        this.insertTicket(ticket);
+
+    }
+
     public BsonObjectId insertTicket(Ticket ticket) {
         return Objects.requireNonNull(this.collection().insertOne(ticket.toDocument()).getInsertedId()).asObjectId();
     }

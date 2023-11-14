@@ -14,7 +14,7 @@ import java.util.Optional;
 
 public class TicketAddTeamButton implements Button {
 
-    private final TicketDatabase ticketDatabase
+    private final TicketDatabase ticketDatabase;
 
     public TicketAddTeamButton(TicketDatabase ticketDatabase) {
         this.ticketDatabase = ticketDatabase;

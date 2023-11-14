@@ -69,7 +69,7 @@ public class DescriptionTicketModal implements Modal {
             assert member != null;
 
             // stop inviting random users
-            threadChannel.getManager().setInvitable(true).queue();
+            threadChannel.getManager().setInvitable(true).setSlowmode(3).queue();
 
             threadChannel.sendMessage(member.getAsMention()).addEmbeds(new EmbedBuilder()
                             .setAuthor("Tickets")
@@ -82,9 +82,8 @@ public class DescriptionTicketModal implements Modal {
                             .setTimestamp(Instant.now())
                             .build())
                     .addActionRow(Button.danger("ticket-close", "Ticket schließen"),
-                            Button.secondary("ticket-history", "Transcript anzeigen")
+                            Button.secondary("ticket-add-team", "Weitere Teammitglieder anfragen")
                     )
-                    .addActionRow(Button.secondary("ticket-add-team", "Weitere Teammitglieder anfragen"))
                     .queue();
 
             this.ticketDatabase.insertTicket(new Ticket(ticketId, member.getId(), threadChannel.getId(), ticketReason, ticketDescription, List.of()));

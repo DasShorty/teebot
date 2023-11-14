@@ -34,6 +34,7 @@ import de.dasshorty.teebot.tickets.TicketDatabase;
 import de.dasshorty.teebot.tickets.create.CreateTicketButton;
 import de.dasshorty.teebot.tickets.create.DescriptionTicketModal;
 import de.dasshorty.teebot.tickets.create.SelectTicketReasonMenu;
+import de.dasshorty.teebot.tickets.listener.TicketMessageListener;
 import de.dasshorty.teebot.tickets.management.TicketAddTeamButton;
 import de.dasshorty.teebot.tickets.management.TicketClaimButton;
 import de.dasshorty.teebot.tickets.management.TicketCloseButton;
@@ -66,7 +67,9 @@ public class Bot {
 
         JTCDatabase jtcDatabase = new JTCDatabase(mongoHandler);
 
-        builder.addEventListeners(new SendWelcomeEmbed(), new JTCVoiceListener(jtcDatabase));
+        TicketDatabase ticketDatabase = new TicketDatabase(mongoHandler);
+
+        builder.addEventListeners(new SendWelcomeEmbed(), new JTCVoiceListener(jtcDatabase), new TicketMessageListener(ticketDatabase));
 
         JDA jda = builder.build().awaitReady();
 
@@ -113,8 +116,7 @@ public class Bot {
 
 
         // Tickets
-        TicketDatabase ticketDatabase = new TicketDatabase(mongoHandler);
-        api.addSlashCommand(new TicketCommand(embedDatabase));
+        api.addSlashCommand(new TicketCommand(embedDatabase, ticketDatabase));
         api.addButton(new CreateTicketButton());
         api.addStringMenu(new SelectTicketReasonMenu(ticketDatabase));
         api.addModal(new DescriptionTicketModal(ticketDatabase));
