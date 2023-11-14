@@ -34,6 +34,7 @@ import de.dasshorty.teebot.tickets.TicketDatabase;
 import de.dasshorty.teebot.tickets.create.CreateTicketButton;
 import de.dasshorty.teebot.tickets.create.DescriptionTicketModal;
 import de.dasshorty.teebot.tickets.create.SelectTicketReasonMenu;
+import de.dasshorty.teebot.tickets.management.TicketAddTeamButton;
 import de.dasshorty.teebot.tickets.management.TicketClaimButton;
 import de.dasshorty.teebot.tickets.management.TicketCloseButton;
 import de.dasshorty.teebot.twitch.TwitchBot;
@@ -120,6 +121,7 @@ public class Bot {
 
         api.addButton(new TicketClaimButton(ticketDatabase));
         api.addButton(new TicketCloseButton(ticketDatabase));
+        api.addButton(new TicketAddTeamButton(ticketDatabase));
 
         // twitch
 
