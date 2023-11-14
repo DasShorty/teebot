@@ -74,7 +74,7 @@ public class TicketClaimButton implements Button {
 
         threadTicketChannel.addThreadMember(member).queue();
 
-        hook.editOriginal("Du wurdest zum Ticket hinzugefügt!").queue(ignored -> {
+        hook.editOriginal("Du wurdest zum Ticket " + threadTicketChannel.getAsMention() + " hinzugefügt!").queue(ignored -> {
 
             event.getMessage()
                     .editMessageComponents(List.of(
