@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:5.0.0-beta.13")
+    implementation("net.dv8tion:JDA:5.0.0-beta.17")
 
     // 3rd party api's
     implementation("com.google.code.gson:gson:2.10.1")
