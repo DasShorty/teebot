@@ -13,8 +13,8 @@ import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 
 import java.awt.*;
 import java.time.Instant;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class TwitchCommand implements SlashCommand {
 
@@ -33,7 +33,9 @@ public class TwitchCommand implements SlashCommand {
                         new SubcommandData("remove", "Entferne einen Channel aus der Liste")
                                 .addOption(OptionType.STRING, "twitch-name", "Der Twitch Channel der entfernt werden soll.", true),
                         new SubcommandData("list", "Liste alle Twitch Channel auf")
-                                .addOption(OptionType.INTEGER, "page", "Die Seite", false)
+                                .addOption(OptionType.INTEGER, "page", "Die Seite", false),
+                        new SubcommandData("alert", "Schreibe eine Twitchnachricht als Bot")
+                                .addOption(OptionType.STRING, "msg", "Nachricht an alle Channel", true)
                 );
     }
 
@@ -44,7 +46,7 @@ public class TwitchCommand implements SlashCommand {
 
         assert null != member;
 
-        if (!(Roles.hasMemberRole(member, Roles.ADMIN) || Roles.hasMemberRole(member, Roles.DEVELOPER))) {
+        if (!(Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER))) {
 
             event.reply("Du hast keine Rechte für diese Funktion!").setEphemeral(true).queue();
 
@@ -99,6 +101,18 @@ public class TwitchCommand implements SlashCommand {
                         .setDescription("Der Channel wurde entfernt!")
                         .setColor(Color.GREEN)
                         .build()).queue();
+            }
+
+            case "alert" -> {
+
+                event.deferReply(true).queue();
+
+                String msg = event.getOption("msg", OptionMapping::getAsString);
+
+                this.twitchBot.sendMessage(msg);
+
+                event.getHook().editOriginal("Die Nachricht wurde versendet!").queue();
+
             }
 
             case "list" -> {

@@ -22,6 +22,10 @@ import de.dasshorty.teebot.embedcreator.steps.step4.thumbnail.AddThumbnailButton
 import de.dasshorty.teebot.embedcreator.steps.step4.thumbnail.ThumbnailModal;
 import de.dasshorty.teebot.embedcreator.steps.step4.timestamp.AddTimstampButton;
 import de.dasshorty.teebot.embedcreator.steps.step5.FinishEmbedButton;
+import de.dasshorty.teebot.giveaways.EnterGiveawayButton;
+import de.dasshorty.teebot.giveaways.GiveawayCommand;
+import de.dasshorty.teebot.giveaways.GiveawayDatabase;
+import de.dasshorty.teebot.giveaways.GiveawayManager;
 import de.dasshorty.teebot.jtc.JTCDatabase;
 import de.dasshorty.teebot.jtc.JTCVoiceListener;
 import de.dasshorty.teebot.jtc.button.ChangeTitleButton;
@@ -44,6 +48,7 @@ import de.dasshorty.teebot.twitch.TwitchDatabase;
 import de.dasshorty.teebot.welcomeembed.SendWelcomeEmbed;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -58,6 +63,8 @@ public class Bot {
         MongoHandler mongoHandler = new MongoHandler();
 
         builder.setMemberCachePolicy(MemberCachePolicy.ALL);
+
+        builder.setActivity(Activity.customStatus("Trinkt Kaffee"));
 
         builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_PRESENCES,
                 GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_VOICE_STATES);
@@ -113,6 +120,12 @@ public class Bot {
         api.addSlashCommand(new AnnouncementCommand(embedDatabase));
 
         Guild guild = jda.getGuilds().get(0);
+
+        // Giveaway
+        GiveawayDatabase giveawayDatabase = new GiveawayDatabase(mongoHandler);
+        GiveawayManager giveawayManager = new GiveawayManager(giveawayDatabase, guild);
+        api.addSlashCommand(new GiveawayCommand(giveawayDatabase, giveawayManager));
+        api.addButton(new EnterGiveawayButton(giveawayDatabase));
 
 
         // Tickets

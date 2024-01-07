@@ -30,7 +30,7 @@ public class TicketDatabase {
 
     public static void sendTicketNotification(Guild guild, TicketReason providedReason, long ticketId) {
 
-        TextChannel notificationChannel = guild.getTextChannelById("1171043429610958888");
+        TextChannel notificationChannel = guild.getTextChannelById("862095492236967947");
 
         assert notificationChannel != null;
         notificationChannel.sendMessage("<@&1171043690148540446>")

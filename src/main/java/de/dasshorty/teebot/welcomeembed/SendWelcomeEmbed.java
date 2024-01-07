@@ -15,7 +15,7 @@ public class SendWelcomeEmbed extends ListenerAdapter {
 
         Guild guild = event.getGuild();
 
-        TextChannel welcomeChannel = guild.getTextChannelById("1159845675341713469");
+        TextChannel welcomeChannel = guild.getTextChannelById("835974825360883764");
 
         assert welcomeChannel != null;
         welcomeChannel.sendMessageEmbeds(new EmbedBuilder()

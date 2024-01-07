@@ -13,7 +13,7 @@ public class MongoHandler {
 
     public MongoHandler() {
         this.mongoClient = MongoClients.create(System.getenv("MONGO_URL"));
-        this.database = this.mongoClient.getDatabase(System.getenv("databaseName"));
+        this.database = this.mongoClient.getDatabase("teebot");
     }
 
     public MongoCollection<Document> collection(String name) {

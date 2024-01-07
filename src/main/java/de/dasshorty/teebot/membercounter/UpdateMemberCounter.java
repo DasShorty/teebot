@@ -11,7 +11,7 @@ public class UpdateMemberCounter {
     public UpdateMemberCounter(Guild guild) {
 
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-            VoiceChannel voiceChannelById = guild.getVoiceChannelById("1159969176614604821");
+            VoiceChannel voiceChannelById = guild.getVoiceChannelById("1118940855147966557");
 
             assert voiceChannelById != null;
             voiceChannelById.getManager().setName("Members: » " + guild.getMemberCount()).queue();

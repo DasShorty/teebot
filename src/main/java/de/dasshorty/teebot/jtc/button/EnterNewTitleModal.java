@@ -49,7 +49,7 @@ public class EnterNewTitleModal implements Modal {
 
         assert member != null;
 
-        if (!jtc.channelOwner().equals(member.getId()) && !Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER, Roles.HEAD_MODERATOR, Roles.MODERATOR)) {
+        if (!jtc.channelOwner().equals(member.getId()) && !Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER, Roles.STAFF)) {
 
             event.replyEmbeds(new EmbedBuilder()
                     .setAuthor("Voicechannel Controller")

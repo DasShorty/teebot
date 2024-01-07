@@ -64,6 +64,12 @@ public class TwitchBot {
         return this.twitchDatabase;
     }
 
+    public void sendMessage(String msg) {
+        this.twitchDatabase.getAllTwitchChannels().forEach(channel -> {
+            this.client.getChat().sendMessage(channel.twitchChannel(), msg);
+        });
+    }
+
     private void loadTwitchChannel() {
         this.twitchDatabase.getAllTwitchChannels().forEach(channel -> {
             this.client.getClientHelper().enableStreamEventListener(channel.twitchChannel());

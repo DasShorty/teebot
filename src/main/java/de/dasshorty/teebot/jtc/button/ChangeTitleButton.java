@@ -48,7 +48,7 @@ public class ChangeTitleButton implements Button {
 
         assert member != null;
 
-        if (!jtc.channelOwner().equals(member.getId()) && !Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER, Roles.HEAD_MODERATOR, Roles.MODERATOR)) {
+        if (!jtc.channelOwner().equals(member.getId()) && !Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER, Roles.STAFF, Roles.FAMILIY)) {
 
             event.replyEmbeds(new EmbedBuilder()
                     .setAuthor("Voicechannel Controller")

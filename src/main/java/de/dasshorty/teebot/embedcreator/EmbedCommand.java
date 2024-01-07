@@ -59,7 +59,7 @@ public class EmbedCommand implements SlashCommand {
 
         assert null != member;
 
-        if (!(Roles.hasMemberRole(member, Roles.ADMIN) || Roles.hasMemberRole(member, Roles.DEVELOPER))) {
+        if (!(Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER))) {
 
             event.reply("Du hast keine Rechte für diese Funktion!").setEphemeral(true).queue();
 

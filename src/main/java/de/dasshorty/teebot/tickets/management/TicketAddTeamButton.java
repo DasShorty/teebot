@@ -32,7 +32,7 @@ public class TicketAddTeamButton implements Button {
         Member member = event.getMember();
 
         assert member != null;
-        if (!Roles.hasMemberRole(member, Roles.SUPPORTER, Roles.MODERATOR, Roles.HEAD_MODERATOR, Roles.ADMIN, Roles.DEVELOPER)) {
+        if (!Roles.hasMemberRole(member, Roles.STAFF, Roles.ADMIN, Roles.DEVELOPER)) {
             event.reply("Du kannst keine Teammitglieder anfragen!").setEphemeral(true).queue();
             return;
         }
