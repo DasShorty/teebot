@@ -7,6 +7,7 @@ import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.github.twitch4j.helix.domain.Stream;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
@@ -22,9 +23,11 @@ public class TwitchBot {
         this.twitchDatabase = twitchDatabase;
 
         String twitchAccessToken = System.getenv("TWITCH_ACCESS_TOKEN");
+        OAuth2Credential twitch = new OAuth2Credential("twitch", twitchAccessToken);
         this.client = TwitchClientBuilder
                 .builder()
-                .withDefaultAuthToken(new OAuth2Credential("thisteebot", twitchAccessToken))
+                .withDefaultAuthToken(twitch)
+                .withChatAccount(twitch)
                 .withEnableHelix(true)
                 .withEnableChat(true)
                 .build();
@@ -37,7 +40,7 @@ public class TwitchBot {
                     System.out.println("Stream startet von " + channelGoLiveEvent.getChannel().getName());
 
 
-                    TextChannel textChannelById = guild.getTextChannelById("1160168436224241705");
+                    TextChannel textChannelById = guild.getTextChannelById("1096139850429771917");
 
                     Stream stream = channelGoLiveEvent.getStream();
                     String twitchName = channelGoLiveEvent.getChannel().getName();
@@ -53,7 +56,7 @@ public class TwitchBot {
                             .setImage(stream.getThumbnailUrl())
                             .setTimestamp(Instant.now())
                             .setColor(Color.decode("#a970ff"))
-                            .build()).addActionRow(Button.link(url, "Stream anschauen")).queue();
+                            .build()).addActionRow(Button.link(url, "Stream anschauen")).flatMap(Message::crosspost).queue();
 
                     System.out.println(twitchName);
 
@@ -64,7 +67,7 @@ public class TwitchBot {
         return this.twitchDatabase;
     }
 
-    public void sendMessage(String msg) {
+    synchronized void sendMessage(String msg) {
         this.twitchDatabase.getAllTwitchChannels().forEach(channel -> {
             this.client.getChat().sendMessage(channel.twitchChannel(), msg);
         });
@@ -75,6 +78,7 @@ public class TwitchBot {
             this.client.getClientHelper().enableStreamEventListener(channel.twitchChannel());
             this.client.getChat().joinChannel(channel.twitchChannel());
             this.client.getChat().sendMessage(channel.twitchChannel(), "Der Teebot ist erfolgreich deinem Chat beigetreten!");
+            System.out.println("Logged in into " + channel.twitchChannel() + " Channel!");
         });
     }
 
@@ -87,6 +91,7 @@ public class TwitchBot {
         this.twitchDatabase.addChannel(new TwitchChannel(channelName));
         this.client.getChat().joinChannel(channelName);
         this.client.getChat().sendMessage(channelName, "Der Teebot ist erfolgreich deinem Chat beigetreten!");
+        System.out.println("Added " + channelName + " Twitch channel!");
 
         return true;
     }
@@ -98,7 +103,7 @@ public class TwitchBot {
 
         this.client.getClientHelper().disableStreamEventListener(channelName);
         this.twitchDatabase.removeChannel(channelName);
-
+        System.out.println("Removed " + channelName + " Twitch channel!");
         return true;
     }
 }
