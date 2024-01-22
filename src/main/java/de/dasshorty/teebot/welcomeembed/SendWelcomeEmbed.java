@@ -63,11 +63,18 @@ public class SendWelcomeEmbed extends ListenerAdapter {
             g.setColor(Color.decode("#262626"));
             g.fillRect(50, 50, 1050, 400);
 
+
             // Avatar zeichnen (als Kreis)
-            int avatarSize = 200;
-            int avatarSize2 = 220;
-            g.setClip(new Ellipse2D.Float(120, 130, avatarSize2, avatarSize2));
-            g.drawImage(avatar, 140, 150, avatarSize, avatarSize, null);
+            int avatarSize = 190;
+            int avatarSize2 = 190;
+            int borderSize = 5; // You can adjust this according to your preference
+
+            g.setColor(Color.WHITE);
+            g.fillOval(130 - borderSize, 140 - borderSize, avatarSize2 + 2 * borderSize, avatarSize2 + 2 * borderSize);
+
+
+            g.setClip(new Ellipse2D.Float(130, 140, avatarSize2, avatarSize2));
+            g.drawImage(avatar, 130, 140, avatarSize, avatarSize, null);
             g.setClip(null);
 
             int startSize = 455;
