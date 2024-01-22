@@ -53,8 +53,6 @@ public class JTCVoiceListener extends ListenerAdapter {
 
     private void addVoiceChannel(GuildVoiceUpdateEvent event, Member member) {
 
-        System.out.println("Channel joined!");
-
         assert event.getChannelJoined() != null;
 
         if (!event.getChannelJoined().getId().equals("1159847520759984128"))
@@ -71,8 +69,6 @@ public class JTCVoiceListener extends ListenerAdapter {
     }
 
     private void removeVoiceChannel(GuildVoiceUpdateEvent event, Member member) {
-
-        System.out.println("Channel left");
 
         AudioChannelUnion channelLeft = event.getChannelLeft();
         assert channelLeft != null;
