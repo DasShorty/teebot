@@ -48,7 +48,12 @@ public class TwitchBot {
                     this.client.getChat().sendMessage(twitchName, "Du bist Live gegangen! Eine benachrichtigung wurde in den Livechat gesendet!");
 
                     String url = "https://twitch.tv/" + twitchName;
-                    assert textChannelById != null;
+
+                    if (textChannelById == null) {
+                        System.out.println("Textchannel is null");
+                        return;
+                    }
+
                     textChannelById.sendMessageEmbeds(new EmbedBuilder()
                             .setAuthor(twitchName, url)
                             .setTitle(stream.getTitle())
@@ -59,7 +64,6 @@ public class TwitchBot {
                             .build()).addActionRow(Button.link(url, "Stream anschauen")).flatMap(Message::crosspost).queue();
 
                     System.out.println(twitchName);
-
                 });
     }
 
