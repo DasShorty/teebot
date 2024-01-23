@@ -8,6 +8,7 @@ import com.github.twitch4j.helix.domain.Stream;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.NewsChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
@@ -39,8 +40,7 @@ public class TwitchBot {
 
                     System.out.println("Stream startet von " + channelGoLiveEvent.getChannel().getName());
 
-
-                    TextChannel textChannelById = guild.getTextChannelById("1096139850429771917");
+                    NewsChannel textChannelById = guild.getNewsChannelById("1096139850429771917");
 
                     Stream stream = channelGoLiveEvent.getStream();
                     String twitchName = channelGoLiveEvent.getChannel().getName();
@@ -54,15 +54,15 @@ public class TwitchBot {
                         return;
                     }
 
-                    textChannelById.sendMessageEmbeds(new EmbedBuilder()
-                            .setAuthor(twitchName, url)
-                            .setTitle(stream.getTitle())
-                            .setDescription(twitchName + " ist Live gegangen! Es wird heute " + stream.getGameName() + " gestreamt!")
-                            .setImage(stream.getThumbnailUrl())
-                            .setTimestamp(Instant.now())
-                            .setColor(Color.decode("#a970ff"))
-                            .build()).addActionRow(Button.link(url, "Stream anschauen")).flatMap(Message::crosspost).queue();
-
+                    textChannelById.sendMessage("<@&835994615399317534>")
+                                    .addEmbeds(new EmbedBuilder()
+                                            .setAuthor(twitchName, url)
+                                            .setTitle(stream.getTitle())
+                                            .setDescription(twitchName + " ist Live gegangen! Es wird heute " + stream.getGameName() + " gestreamt!")
+                                            .setImage(stream.getThumbnailUrl())
+                                            .setTimestamp(Instant.now())
+                                            .setColor(Color.decode("#a970ff"))
+                                            .build()).addActionRow(Button.link(url, "Stream anschauen")).flatMap(Message::crosspost).queue();
                     System.out.println(twitchName);
                 });
     }
