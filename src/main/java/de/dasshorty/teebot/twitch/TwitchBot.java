@@ -59,8 +59,6 @@ public class TwitchBot {
                     Stream stream = channelGoLiveEvent.getStream();
                     String twitchName = channelGoLiveEvent.getChannel().getName();
 
-                    this.client.getChat().sendMessage(twitchName, "Du bist Live gegangen! Eine benachrichtigung wurde in den Livechat gesendet!");
-
                     String url = "https://twitch.tv/" + twitchName;
 
                     if (textChannelById == null) {
@@ -81,14 +79,16 @@ public class TwitchBot {
                 });
     }
 
-    public TwitchDatabase getTwitchDatabase() {
+    TwitchDatabase getTwitchDatabase() {
         return this.twitchDatabase;
     }
 
-    synchronized void sendMessage(String msg) {
-        this.twitchDatabase.getAllTwitchChannels().forEach(channel -> {
-            this.client.getChat().sendMessage(channel.twitchChannel(), msg);
-        });
+    void sendMessage(String msg) {
+        synchronized (this) {
+            this.twitchDatabase.getAllTwitchChannels().forEach(channel -> {
+                this.client.getChat().sendMessage(channel.twitchChannel(), msg);
+            });
+        }
     }
 
     private void loadTwitchChannel() {
@@ -100,7 +100,7 @@ public class TwitchBot {
         });
     }
 
-    public boolean addChannel(String channelName) {
+    boolean addChannel(String channelName) {
 
         if (this.twitchDatabase.isChannelRegistered(channelName))
             return false;
