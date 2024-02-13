@@ -30,10 +30,10 @@ public class TicketDatabase {
 
     public static void sendTicketNotification(Guild guild, TicketReason providedReason, long ticketId) {
 
-        TextChannel notificationChannel = guild.getTextChannelById("862095492236967947");
+        TextChannel notificationChannel = guild.getTextChannelById("1207082628021358593");
 
         assert notificationChannel != null;
-        notificationChannel.sendMessage("<@&1171043690148540446>")
+        notificationChannel.sendMessage("<@&835975805699751956>")
                 .addEmbeds(new EmbedBuilder()
                         .setAuthor("Tickets")
                         .setColor(Color.ORANGE)

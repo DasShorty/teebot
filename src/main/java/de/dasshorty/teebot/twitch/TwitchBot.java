@@ -71,9 +71,10 @@ public class TwitchBot {
                                     .setAuthor(twitchName, url)
                                     .setTitle(stream.getTitle())
                                     .setDescription(twitchName + " ist Live gegangen! Es wird heute " + stream.getGameName() + " gestreamt!")
-                                    .setImage(stream.getThumbnailUrl())
+                                    .setThumbnail(stream.getThumbnailUrl())
                                     .setTimestamp(Instant.now())
                                     .setColor(Color.decode("#a970ff"))
+                                    .setFooter("Twitch", "https://cdn.dasshorty.de/twitch.png")
                                     .build()).addActionRow(Button.link(url, "Stream anschauen")).flatMap(Message::crosspost).queue(message -> this.notifications.put(twitchName, message));
                     System.out.println(twitchName);
                 });
@@ -83,12 +84,10 @@ public class TwitchBot {
         return this.twitchDatabase;
     }
 
-    void sendMessage(String msg) {
-        synchronized (this) {
-            this.twitchDatabase.getAllTwitchChannels().forEach(channel -> {
-                this.client.getChat().sendMessage(channel.twitchChannel(), msg);
-            });
-        }
+    synchronized void sendMessage(String msg) {
+        this.twitchDatabase.getAllTwitchChannels().forEach(channel -> {
+            this.client.getChat().sendMessage(channel.twitchChannel(), msg);
+        });
     }
 
     private void loadTwitchChannel() {
