@@ -38,6 +38,6 @@ public record YoutubeNotificationDatabase(MongoHandler mongoHandler) {
         if (first == null)
             return false;
 
-        return Objects.equals(first.getString("youtubeId"), id);
+        return Objects.equals(first.getString("youtubeNotify"), id);
     }
 }

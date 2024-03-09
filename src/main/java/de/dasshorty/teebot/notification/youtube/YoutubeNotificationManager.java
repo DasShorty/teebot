@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.channel.concrete.NewsChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import okhttp3.OkHttpClient;
@@ -25,22 +26,13 @@ public record YoutubeNotificationManager(YoutubeNotificationDatabase database, O
 
 
     public void initCheck(Guild guild) {
+
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
 
             try {
 
                 String lastVideoId = this.getLastVideoId();
-
-                if (this.database.compareIds(lastVideoId)) {
-                    this.database.setLastVideoId(lastVideoId);
-                    Optional<VideoData> videoData = this.getVideoData(lastVideoId);
-
-                    if (videoData.isEmpty())
-                        return;
-
-                    this.sendNotification(guild, videoData.get());
-                }
-
+                this.sendNotifications(guild, lastVideoId);
 
             } catch (IOException e) {
                 e.fillInStackTrace();
@@ -49,15 +41,28 @@ public record YoutubeNotificationManager(YoutubeNotificationDatabase database, O
         }, 0L, 1L, TimeUnit.MINUTES);
     }
 
+    private void sendNotifications(Guild guild, String lastVideoId) throws IOException {
+        if (!this.database.compareIds(lastVideoId)) {
+            this.database.setLastVideoId(lastVideoId);
+            Optional<VideoData> videoData = this.getVideoData(lastVideoId);
+
+            if (videoData.isEmpty()) {
+                return;
+            }
+
+            this.sendNotification(guild, videoData.get());
+        }
+    }
+
     private void sendNotification(Guild guild, VideoData data) {
 
-        TextChannel socialMediaChannel = guild.getTextChannelById("1096139850429771917");
+        NewsChannel socialMediaChannel = guild.getNewsChannelById("1096139850429771917");
 
         MessageEmbed embed = new EmbedBuilder()
-                .setAuthor("LaudyTV", "https://yt3.googleusercontent.com/1x6uW3I-UTuU__oqnTqJv_Wq_dXaozZABBVtRmyyb_euRNKWxGGXVFZEW6kS6dwFxfCSxfbdOZU=s176-c-k-c0x00ffffff-no-rj")
+                .setAuthor("LaudyTV", "https://youtube.com/@LaudyTV", "https://yt3.googleusercontent.com/1x6uW3I-UTuU__oqnTqJv_Wq_dXaozZABBVtRmyyb_euRNKWxGGXVFZEW6kS6dwFxfCSxfbdOZU=s176-c-k-c0x00ffffff-no-rj")
                 .setTitle(data.title())
                 .setDescription(data.description())
-                .setThumbnail(data.thumbnail())
+                .setImage(data.thumbnail())
                 .setColor(Color.RED)
                 .setTimestamp(Instant.now())
                 .setFooter("Youtube Uploads", "https://cdn.dasshorty.de/youtube-logo.png")
@@ -79,9 +84,6 @@ public record YoutubeNotificationManager(YoutubeNotificationDatabase database, O
                 .build();
 
         Response execute = this.httpClient.newCall(request).execute();
-
-        System.out.println("--- VIDEO DATA ---");
-        System.out.println(execute.body().string());
 
         if (execute.code() != 200) {
             return Optional.empty();
@@ -110,9 +112,6 @@ public record YoutubeNotificationManager(YoutubeNotificationDatabase database, O
         Response execute = this.httpClient.newCall(request)
                 .execute();
 
-        System.out.println("--- CHANNEL DATA ---");
-        System.out.println(execute.body().string());
-
         if (execute.code() != 200) {
             return null;
         }
@@ -122,8 +121,6 @@ public record YoutubeNotificationManager(YoutubeNotificationDatabase database, O
         }
 
         JsonObject json = JsonParser.parseString(execute.body().string()).getAsJsonObject().getAsJsonArray("items").get(0).getAsJsonObject();
-
-        System.out.println("VIDEO ID");
 
         return json.getAsJsonObject("contentDetails").getAsJsonObject("upload").get("videoId").getAsString();
     }
