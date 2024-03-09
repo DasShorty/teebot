@@ -1,4 +1,4 @@
-package de.dasshorty.teebot.twitch;
+package de.dasshorty.teebot.notification.twitch;
 
 public record TwitchChannel(String twitchChannel) {
 }

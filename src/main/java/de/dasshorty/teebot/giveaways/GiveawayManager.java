@@ -1,8 +1,8 @@
 package de.dasshorty.teebot.giveaways;
 
 import net.dv8tion.jda.api.entities.Guild;
-import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -15,24 +15,30 @@ public class GiveawayManager {
         this.giveawayDatabase = giveawayDatabase;
         this.guild = guild;
 
-        this.startUpRunnable();
+        this.runTask();
     }
 
-    private void startUpRunnable() {
+    private void runTask() {
 
-        this.giveawayDatabase.getActiveGiveaways().forEach(this::createScheduledTask);
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
 
-    }
+            this.giveawayDatabase.getActiveGiveaways().forEach(giveaway -> {
 
-    void createScheduledTask(@NotNull Giveaway giveaway) {
-        Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+                if (giveaway.getEndTimeCalculated() >= Instant.now().getEpochSecond()) {
 
-            Giveaway updatedGiveaway = giveaway.setActive(false);
+                    if (giveaway.active()) {
 
-            this.giveawayDatabase.updateGiveaway(updatedGiveaway);
+                        Giveaway updatedGiveaway = giveaway.setActive(false);
+                        this.giveawayDatabase.updateGiveaway(updatedGiveaway);
+                        updatedGiveaway.endGiveaway(this.guild);
 
-            updatedGiveaway.endGiveaway(this.guild);
+                    }
 
-        }, giveaway.getTimeUntilEnd(), TimeUnit.SECONDS);
+                }
+
+            });
+
+        }, 0L, 5L, TimeUnit.SECONDS);
+
     }
 }

@@ -31,6 +31,11 @@ import de.dasshorty.teebot.jtc.JTCVoiceListener;
 import de.dasshorty.teebot.jtc.button.ChangeTitleButton;
 import de.dasshorty.teebot.jtc.button.EnterNewTitleModal;
 import de.dasshorty.teebot.membercounter.UpdateMemberCounter;
+import de.dasshorty.teebot.notification.twitch.TwitchBot;
+import de.dasshorty.teebot.notification.twitch.TwitchCommand;
+import de.dasshorty.teebot.notification.twitch.TwitchDatabase;
+import de.dasshorty.teebot.notification.youtube.YoutubeNotificationDatabase;
+import de.dasshorty.teebot.notification.youtube.YoutubeNotificationManager;
 import de.dasshorty.teebot.selfroles.SelfRoleCommand;
 import de.dasshorty.teebot.selfroles.SelfRoleDatabase;
 import de.dasshorty.teebot.tickets.TicketCommand;
@@ -42,9 +47,6 @@ import de.dasshorty.teebot.tickets.listener.TicketMessageListener;
 import de.dasshorty.teebot.tickets.management.TicketAddTeamButton;
 import de.dasshorty.teebot.tickets.management.TicketClaimButton;
 import de.dasshorty.teebot.tickets.management.TicketCloseButton;
-import de.dasshorty.teebot.twitch.TwitchBot;
-import de.dasshorty.teebot.twitch.TwitchCommand;
-import de.dasshorty.teebot.twitch.TwitchDatabase;
 import de.dasshorty.teebot.welcomeembed.SendWelcomeEmbed;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -53,10 +55,13 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import okhttp3.OkHttpClient;
 
 public class Bot {
 
     public static void main(String[] args) throws InterruptedException {
+
+        OkHttpClient httpClient = new OkHttpClient();
 
         JDABuilder builder = JDABuilder.createDefault(System.getenv("BOT_TOKEN"));
 
@@ -145,6 +150,13 @@ public class Bot {
         TwitchBot twitchBot = new TwitchBot(twitchDatabase, guild);
 
         api.addSlashCommand(new TwitchCommand(twitchBot));
+
+        // youtube
+
+        YoutubeNotificationDatabase youtubeDatabase = new YoutubeNotificationDatabase(mongoHandler);
+        YoutubeNotificationManager youtubeManager = new YoutubeNotificationManager(youtubeDatabase, httpClient);
+
+        youtubeManager.initCheck(guild);
 
         new UpdateMemberCounter(guild);
 

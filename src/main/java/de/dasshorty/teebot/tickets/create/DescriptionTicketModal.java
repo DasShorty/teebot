@@ -56,7 +56,7 @@ public class DescriptionTicketModal implements Modal {
 
         TicketReason ticketReason = optionalTicketReason.get();
 
-        TextChannel ticketChannel = Objects.requireNonNull(event.getGuild()).getTextChannelById("1159846560549576817");
+        TextChannel ticketChannel = Objects.requireNonNull(event.getGuild()).getTextChannelById("1207082628021358593");
 
         long ticketId = this.ticketDatabase.getCreatedTickets() + 1L;
 
@@ -87,7 +87,6 @@ public class DescriptionTicketModal implements Modal {
                     .queue();
 
             this.ticketDatabase.insertTicket(new Ticket(ticketId, member.getId(), threadChannel.getId(), ticketReason, ticketDescription, List.of()));
-
 
             hook.editOriginal("Dein Ticket wurde in " + threadChannel.getAsMention() + " erstellt!").queue();
 

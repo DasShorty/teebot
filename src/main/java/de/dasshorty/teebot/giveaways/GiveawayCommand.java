@@ -90,7 +90,7 @@ public class GiveawayCommand implements SlashCommand {
                 Giveaway giveaway = optionalGiveaway.get();
 
 
-                TextChannel giveawayChannel = Objects.requireNonNull(event.getGuild()).getTextChannelById("1159846464990740642");
+                TextChannel giveawayChannel = Objects.requireNonNull(event.getGuild()).getTextChannelById("846911802897334272");
 
                 assert giveawayChannel != null;
                 giveawayChannel.sendMessageEmbeds(new EmbedBuilder()
@@ -109,9 +109,6 @@ public class GiveawayCommand implements SlashCommand {
                     this.giveawayDatabase.updateGiveaway(updatedGiveaway);
 
                     hook.editOriginal("Das Giveaway wurde gestartet!").queue();
-
-                    this.giveawayManager.createScheduledTask(giveaway);
-
                 });
 
 

@@ -1,4 +1,4 @@
-package de.dasshorty.teebot.twitch;
+package de.dasshorty.teebot.notification.twitch;
 
 import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;

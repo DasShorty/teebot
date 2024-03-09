@@ -1,4 +1,4 @@
-package de.dasshorty.teebot.twitch;
+package de.dasshorty.teebot.notification.twitch;
 
 import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.twitch4j.TwitchClient;

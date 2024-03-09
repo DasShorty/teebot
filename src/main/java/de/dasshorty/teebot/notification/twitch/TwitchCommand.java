@@ -1,4 +1,4 @@
-package de.dasshorty.teebot.twitch;
+package de.dasshorty.teebot.notification.twitch;
 
 import de.dasshorty.teebot.api.Paginator;
 import de.dasshorty.teebot.api.Roles;
