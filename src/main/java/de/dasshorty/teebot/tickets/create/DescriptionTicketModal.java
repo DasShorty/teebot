@@ -56,7 +56,7 @@ public class DescriptionTicketModal implements Modal {
 
         TicketReason ticketReason = optionalTicketReason.get();
 
-        TextChannel ticketChannel = Objects.requireNonNull(event.getGuild()).getTextChannelById("1207082628021358593");
+        TextChannel ticketChannel = Objects.requireNonNull(event.getGuild()).getTextChannelById("836107968659456000");
 
         long ticketId = this.ticketDatabase.getCreatedTickets() + 1L;
 
@@ -69,7 +69,7 @@ public class DescriptionTicketModal implements Modal {
             assert member != null;
 
             // stop inviting random users
-            threadChannel.getManager().setInvitable(true).setSlowmode(3).queue();
+            threadChannel.getManager().setInvitable(false).setSlowmode(3).queue();
 
             threadChannel.sendMessage(member.getAsMention()).addEmbeds(new EmbedBuilder()
                             .setAuthor("Tickets")
