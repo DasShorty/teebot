@@ -16,16 +16,17 @@ public record YoutubeNotificationDatabase(MongoHandler mongoHandler) {
 
     void setLastVideoId(String id) {
 
-        if (this.collection().countDocuments() != 0L) {
+//        if (this.collection().countDocuments() != 0L) {
+//
+//            Document first = this.collection().find().first();
+//            assert first != null;
+//            String youtubeNotify = first.getString("youtubeNotify");
+//            this.collection().updateOne(Filters.eq("youtubeNotify", youtubeNotify), Updates.set("youtubeNotify", youtubeNotify));
+//
+//            return;
+//        }
 
-            Document first = this.collection().find().first();
-            assert first != null;
-            String youtubeNotify = first.getString("youtubeNotify");
-            this.collection().updateOne(Filters.eq("youtubeNotify", youtubeNotify), Updates.set("youtubeNotify", youtubeNotify));
-
-            return;
-        }
-
+        this.collection().deleteOne(Filters.eq("youtubeNotify", id));
         Document document = new Document();
         document.put("youtubeNotify", id);
         this.collection().insertOne(document);
