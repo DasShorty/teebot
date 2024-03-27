@@ -70,7 +70,7 @@ public record YoutubeNotificationManager(YoutubeNotificationDatabase database, O
 
 
         assert socialMediaChannel != null;
-        socialMediaChannel.sendMessage("<@&835994615399317534>")
+        socialMediaChannel.sendMessage("<@&1216029988248223885>")
                 .addEmbeds(embed)
                 .addActionRow(Button.link(data.viewLink(), "Video anschauen")).flatMap(Message::crosspost).queue();
 
