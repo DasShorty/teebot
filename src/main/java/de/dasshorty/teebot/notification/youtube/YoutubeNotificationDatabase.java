@@ -26,7 +26,7 @@ public record YoutubeNotificationDatabase(MongoHandler mongoHandler) {
 //            return;
 //        }
 
-        this.collection().deleteOne(Filters.eq("youtubeNotify", id));
+        this.collection().drop();
         Document document = new Document();
         document.put("youtubeNotify", id);
         this.collection().insertOne(document);
