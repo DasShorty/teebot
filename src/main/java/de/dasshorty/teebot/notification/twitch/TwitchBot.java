@@ -66,7 +66,7 @@ public class TwitchBot {
                         return;
                     }
 
-                    textChannelById.sendMessage("<@&835994615399317534>")
+                    textChannelById.sendMessage("<@&1216029999702741023>")
                             .addEmbeds(new EmbedBuilder()
                                     .setAuthor(twitchName, url)
                                     .setTitle(stream.getTitle())
