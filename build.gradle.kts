@@ -13,16 +13,15 @@ repositories {
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:5.0.0-beta.20")
+    implementation("net.dv8tion:JDA:5.0.0-beta.24")
 
     // 3rd party api's
     implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("com.github.twitch4j:twitch4j:1.17.0")
 
-    // mongo
+    // mongodb
     implementation("org.mongodb:mongodb-driver-sync:4.10.2")
-
 
     // OkHttp Client
     implementation("com.squareup.okhttp3:okhttp:4.12.0") // https://square.github.io/okhttp/

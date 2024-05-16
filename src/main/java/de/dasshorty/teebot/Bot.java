@@ -83,7 +83,7 @@ public class Bot {
 
         builder.addEventListeners(new SendWelcomeEmbed(), new JTCVoiceListener(jtcDatabase), new TicketMessageListener(ticketDatabase));
 
-        JDA jda = builder.build().awaitReady();
+        JDA jda = builder.setAutoReconnect(true).build().awaitReady();
 
         EmbedDatabase embedDatabase = new EmbedDatabase(mongoHandler);
 
