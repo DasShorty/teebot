@@ -2,8 +2,7 @@ package de.dasshorty.teebot.tickets.management;
 
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.buttons.Button;
-import de.dasshorty.teebot.tickets.Ticket;
-import de.dasshorty.teebot.tickets.TicketDatabase;
+import de.dasshorty.teebot.tickets.TicketDto;
 import de.dasshorty.teebot.tickets.TicketReason;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -47,7 +46,7 @@ public class TicketAddTeamButton implements Button {
             long ticketIdFromName = Long.parseLong(event.getChannel().getName());
 
 
-            Optional<Ticket> optionalTicket = this.ticketDatabase.getTicketWithId(ticketIdFromName);
+            Optional<TicketDto> optionalTicket = this.ticketDatabase.getTicketWithId(ticketIdFromName);
 
             if (optionalTicket.isEmpty()) {
                 hook.editOriginal("Dieser Kanal scheint kein Ticket zu sein.").queue();

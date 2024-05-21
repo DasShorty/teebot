@@ -2,8 +2,8 @@ package de.dasshorty.teebot.tickets.management;
 
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.buttons.Button;
-import de.dasshorty.teebot.tickets.Ticket;
-import de.dasshorty.teebot.tickets.TicketDatabase;
+import de.dasshorty.teebot.tickets.TicketDto;
+import de.dasshorty.teebot.tickets.TicketRepository;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -19,10 +19,10 @@ import java.util.concurrent.TimeUnit;
 
 public class TicketCloseButton implements Button {
 
-    private final TicketDatabase ticketDatabase;
+    private final TicketRepository ticketRepo;
 
-    public TicketCloseButton(TicketDatabase ticketDatabase) {
-        this.ticketDatabase = ticketDatabase;
+    public TicketCloseButton(TicketRepository ticketRepo) {
+        this.ticketRepo = ticketRepo;
     }
 
     @Override
@@ -49,17 +49,14 @@ public class TicketCloseButton implements Button {
 
         try {
 
-            long idAsChannelName = Long.parseLong(event.getChannel().getName());
+            Optional<TicketDto> optional = this.ticketRepo.findByThreadId(event.getChannel().getId());
 
-
-            Optional<Ticket> optionalTicket = this.ticketDatabase.getTicketWithId(idAsChannelName);
-
-            if (optionalTicket.isEmpty() || event.getChannel().getType() != ChannelType.GUILD_PRIVATE_THREAD) {
+            if (optional.isEmpty() || event.getChannel().getType() != ChannelType.GUILD_PRIVATE_THREAD) {
                 hook.editOriginal("Dieser Kanal scheint kein Ticket zu sein.").queue();
                 return;
             }
 
-            Ticket ticket = optionalTicket.get();
+            TicketDto ticketDto = optional.get();
 
             ThreadChannel ticketChannel = event.getChannel().asThreadChannel();
             this.sendTicketClosed(ticketChannel);

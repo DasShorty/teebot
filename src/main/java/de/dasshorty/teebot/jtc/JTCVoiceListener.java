@@ -1,5 +1,6 @@
 package de.dasshorty.teebot.jtc;
 
+import lombok.val;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -19,11 +20,12 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class JTCVoiceListener extends ListenerAdapter {
-    private final JTCDatabase jtcDatabase;
+
+    private final JTCRepository jtcRepo;
     private final List<Category> categories = new ArrayList<>();
 
-    public JTCVoiceListener(JTCDatabase jtcDatabase) {
-        this.jtcDatabase = jtcDatabase;
+    public JTCVoiceListener(JTCRepository jtcRepo) {
+        this.jtcRepo = jtcRepo;
     }
 
     private static void createCategory(@NotNull Guild guild, Consumer<Category> consumer) {
@@ -73,13 +75,17 @@ public class JTCVoiceListener extends ListenerAdapter {
         AudioChannelUnion channelLeft = event.getChannelLeft();
         assert channelLeft != null;
 
-        if (!this.jtcDatabase.isJTCExisting(channelLeft.getId()))
-            return;
+        val optional = this.jtcRepo.findByChannelId(channelLeft.getId());
 
-        if (!channelLeft.getMembers().isEmpty())
+        if (optional.isEmpty()) {
             return;
+        }
 
-        this.jtcDatabase.removeJTC(channelLeft.getId());
+        if (!channelLeft.getMembers().isEmpty()) {
+            return;
+        }
+
+        this.jtcRepo.delete(optional.get());
 
         this.logInChannel(channelLeft.getGuild(), "Channel " + channelLeft.getName() + " has been deleted!");
 
@@ -132,7 +138,12 @@ public class JTCVoiceListener extends ListenerAdapter {
                             .setColor(Color.WHITE)
                             .build()).addActionRow(Button.secondary("jtc-change-title", "Titel ändern")).queue();
 
-            this.jtcDatabase.addJTC(new JTC(voiceChannel.getId(), member.getId(), category.getId()));
+            JTCDto dto = new JTCDto();
+            dto.setChannelId(voiceChannel.getId());
+            dto.setCategoryId(category.getId());
+            dto.setChannelOwnerId(member.getId());
+
+            this.jtcRepo.save(dto);
 
             onChannelCreated.accept(voiceChannel);
         });

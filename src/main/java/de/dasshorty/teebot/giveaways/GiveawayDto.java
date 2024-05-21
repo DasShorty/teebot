@@ -1,6 +1,7 @@
 package de.dasshorty.teebot.giveaways;
 
-import com.google.gson.Gson;
+import lombok.Getter;
+import lombok.Setter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -8,9 +9,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import org.bson.Document;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.data.annotation.Id;
 
 import java.awt.*;
 import java.time.Instant;
@@ -18,17 +17,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public record Giveaway(long giveawayId, int winner, String description, long endTime, String messageId, boolean active,
-                       ArrayList<String> enteredMemberIds) {
+@org.springframework.data.mongodb.core.mapping.Document(collection = "giveaways")
+@Getter
+@Setter
+public class GiveawayDto {
 
-    @Contract("_ -> new")
-    public @NotNull Giveaway setActive(boolean isActive) {
-        return new Giveaway(this.giveawayId, this.winner, this.description, this.endTime, this.messageId, isActive, this.enteredMemberIds);
-    }
-
-    static Giveaway fromJson(String json) {
-        return new Gson().fromJson(json, Giveaway.class);
-    }
+    @Id
+    private String giveawayId;
+    private int winnerCount;
+    private String description;
+    private long endTime;
+    private String messageId;
+    private boolean active = false;
+    private ArrayList<String> enteredMemberIds = new ArrayList<>();
 
     long getEndTimeCalculated() {
         return Instant.now().getEpochSecond() + this.endTime;
@@ -40,7 +41,7 @@ public record Giveaway(long giveawayId, int winner, String description, long end
 
         Random random = new Random(new Random().nextLong());
 
-        for (int i = 0; i < this.winner; i++) {
+        for (int i = 0; i < this.winnerCount; i++) {
 
 
             String chosenMember;
@@ -90,11 +91,6 @@ public record Giveaway(long giveawayId, int winner, String description, long end
     public long getTimeUntilEnd() {
         long epochSecond = Instant.now().getEpochSecond();
         return this.endTime - epochSecond;
-    }
-
-    Document toDocument() {
-        Gson gson = new Gson();
-        return gson.fromJson(gson.toJson(this), Document.class);
     }
 
 }

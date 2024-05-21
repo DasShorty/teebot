@@ -13,19 +13,19 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.internal.interactions.CommandDataImpl;
+import org.bson.types.ObjectId;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 
 public class GiveawayCommand implements SlashCommand {
 
-    private final GiveawayDatabase giveawayDatabase;
+    private final GiveawayRepository giveawayRepo;
     private final GiveawayManager giveawayManager;
 
-    public GiveawayCommand(GiveawayDatabase giveawayDatabase, GiveawayManager giveawayManager) {
-        this.giveawayDatabase = giveawayDatabase;
+    public GiveawayCommand(GiveawayRepository giveawayRepo, GiveawayManager giveawayManager) {
+        this.giveawayRepo = giveawayRepo;
         this.giveawayManager = giveawayManager;
     }
 
@@ -59,26 +59,28 @@ public class GiveawayCommand implements SlashCommand {
 
                 event.deferReply(true).queue();
 
-                int winner = Objects.requireNonNull(event.<Integer>getOption("winner", OptionMapping::getAsInt)).intValue();
+                int winnerCount = Objects.requireNonNull(event.<Integer>getOption("winner", OptionMapping::getAsInt)).intValue();
                 long endTime = Objects.requireNonNull(event.<Long>getOption("end", OptionMapping::getAsLong)).longValue();
                 String description = event.getOption("description", OptionMapping::getAsString);
 
-                long giveawayId = this.giveawayDatabase.countGiveaways();
+                GiveawayDto dto = new GiveawayDto();
+                dto.setGiveawayId(new ObjectId().toHexString());
+                dto.setWinnerCount(winnerCount);
+                dto.setDescription(description);
+                dto.setEndTime(endTime);
 
-                Giveaway giveaway = new Giveaway(giveawayId, winner, description, endTime, null, false, new ArrayList<>());
+                this.giveawayRepo.save(dto);
 
-                this.giveawayDatabase.insertGiveaway(giveaway);
-
-                event.getHook().editOriginal("Das Giveaway wurde als ID ( *" + giveawayId + "* ) abgespeichert! Um nun das Giveaway zu starten, **gebe** /giveaway start <id> ein!").queue();
+                event.getHook().editOriginal("Das Giveaway wurde als ID ( **" + dto.getGiveawayId() + "** ) abgespeichert! Um nun das Giveaway zu starten, **gebe** /giveaway start <id> ein!").queue();
             }
 
             case "start" -> {
 
                 event.deferReply(true).queue();
 
-                long giveawayId = Objects.requireNonNull(event.getOption("id", OptionMapping::getAsLong)).longValue();
+                String giveawayId = Objects.requireNonNull(event.getOption("id", OptionMapping::getAsString));
 
-                Optional<Giveaway> optionalGiveaway = this.giveawayDatabase.getGiveaway(giveawayId);
+                Optional<GiveawayDto> optionalGiveaway = this.giveawayRepo.findById(giveawayId);
 
                 InteractionHook hook = event.getHook();
 
@@ -87,29 +89,28 @@ public class GiveawayCommand implements SlashCommand {
                     return;
                 }
 
-                Giveaway giveaway = optionalGiveaway.get();
+                GiveawayDto dto = optionalGiveaway.get();
 
-
-                TextChannel giveawayChannel = Objects.requireNonNull(event.getGuild()).getTextChannelById("846911802897334272");
+                TextChannel giveawayChannel = Objects.requireNonNull(event.getGuild()).getTextChannelById(System.getenv("GIVEAWAY_CHANNEL"));
 
                 assert giveawayChannel != null;
                 giveawayChannel.sendMessageEmbeds(new EmbedBuilder()
-                        .setAuthor("Giveaways")
-                        .setColor(Color.decode("#f7d31b"))
-                        .setDescription(giveaway.description())
-                        .addField("Gewinner", String.valueOf(giveaway.winner()), true)
-                        .addField("Läuft bis", "<t:" + giveaway.getEndTimeCalculated() + ":R>", true)
-                        .addField("ID", String.valueOf(giveawayId), false)
-                        .build())
+                                .setAuthor("Giveaways")
+                                .setColor(Color.decode("#f7d31b"))
+                                .setDescription(dto.getDescription())
+                                .addField("Gewinner", String.valueOf(dto.getWinnerCount()), true)
+                                .addField("Läuft bis", dto.getTimestamp(), true)
+                                .build())
                         .addActionRow(Button.success("enter-giveaway", "Giveaway beitreten"))
                         .queue(message -> {
 
+                            dto.setActive(true);
+                            dto.setMessageId(message.getId());
 
-                    Giveaway updatedGiveaway = new Giveaway(giveaway.giveawayId(), giveaway.winner(), giveaway.description(), giveaway.endTime(), message.getId(), true, new ArrayList<>());
-                    this.giveawayDatabase.updateGiveaway(updatedGiveaway);
+                            this.giveawayRepo.save(dto);
 
-                    hook.editOriginal("Das Giveaway wurde gestartet!").queue();
-                });
+                            hook.editOriginal("Das Giveaway (**" + dto.getGiveawayId() + "**) wurde gestartet!").queue();
+                        });
 
 
             }

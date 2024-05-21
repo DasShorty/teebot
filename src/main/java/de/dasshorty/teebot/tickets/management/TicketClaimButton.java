@@ -1,8 +1,7 @@
 package de.dasshorty.teebot.tickets.management;
 
 import de.dasshorty.teebot.api.buttons.Button;
-import de.dasshorty.teebot.tickets.Ticket;
-import de.dasshorty.teebot.tickets.TicketDatabase;
+import de.dasshorty.teebot.tickets.TicketDto;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -52,7 +51,7 @@ public class TicketClaimButton implements Button {
         String ticketId = fields.get(1).getValue();
 
         assert ticketId != null;
-        Optional<Ticket> optionalTicket = this.ticketDatabase.getTicketWithId(Long.parseLong(ticketId));
+        Optional<TicketDto> optionalTicket = this.ticketDatabase.getTicketWithId(Long.parseLong(ticketId));
 
         InteractionHook hook = event.getHook();
 
@@ -61,9 +60,9 @@ public class TicketClaimButton implements Button {
             return;
         }
 
-        Ticket ticket = optionalTicket.get();
+        TicketDto ticketDto = optionalTicket.get();
 
-        ThreadChannel threadTicketChannel = Objects.requireNonNull(event.getGuild()).getThreadChannelById(ticket.threadId());
+        ThreadChannel threadTicketChannel = Objects.requireNonNull(event.getGuild()).getThreadChannelById(ticketDto.threadId());
 
         assert member != null;
 

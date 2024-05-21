@@ -2,8 +2,8 @@ package de.dasshorty.teebot.jtc.button;
 
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.buttons.Button;
-import de.dasshorty.teebot.jtc.JTC;
-import de.dasshorty.teebot.jtc.JTCDatabase;
+import de.dasshorty.teebot.jtc.JTCDto;
+import de.dasshorty.teebot.jtc.JTCRepository;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -15,10 +15,10 @@ import java.awt.*;
 import java.util.Optional;
 
 public class ChangeTitleButton implements Button {
-    private final JTCDatabase jtcDatabase;
+    private final JTCRepository jtcRepo;
 
-    public ChangeTitleButton(JTCDatabase jtcDatabase) {
-        this.jtcDatabase = jtcDatabase;
+    public ChangeTitleButton(JTCRepository jtcRepo) {
+        this.jtcRepo = jtcRepo;
     }
 
     @Override
@@ -33,9 +33,9 @@ public class ChangeTitleButton implements Button {
 
         String channelId = event.getChannel().getId();
 
-        Optional<JTC> optionalJTC = this.jtcDatabase.getJTC(channelId);
+        Optional<JTCDto> optional = this.jtcRepo.findById(channelId);
 
-        if (optionalJTC.isEmpty()) {
+        if (optional.isEmpty()) {
             event.replyEmbeds(new EmbedBuilder()
                     .setAuthor("Voicechannel Controller")
                     .setDescription("Der Titel konnte nicht geändert werden")
@@ -44,11 +44,11 @@ public class ChangeTitleButton implements Button {
             return;
         }
 
-        JTC jtc = optionalJTC.get();
+        JTCDto dto = optional.get();
 
         assert member != null;
 
-        if (!jtc.channelOwner().equals(member.getId()) && !Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER, Roles.STAFF, Roles.FAMILIY)) {
+        if (!dto.getChannelOwnerId().equals(member.getId()) && !Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER, Roles.STAFF, Roles.FAMILIY)) {
 
             event.replyEmbeds(new EmbedBuilder()
                     .setAuthor("Voicechannel Controller")

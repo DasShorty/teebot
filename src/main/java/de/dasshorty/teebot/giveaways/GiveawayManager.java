@@ -28,9 +28,9 @@ public class GiveawayManager {
 
                     if (giveaway.active()) {
 
-                        Giveaway updatedGiveaway = giveaway.setActive(false);
-                        this.giveawayDatabase.updateGiveaway(updatedGiveaway);
-                        updatedGiveaway.endGiveaway(this.guild);
+                        GiveawayDto updatedGiveawayDto = giveaway.setActive(false);
+                        this.giveawayDatabase.updateGiveaway(updatedGiveawayDto);
+                        updatedGiveawayDto.endGiveaway(this.guild);
 
                     }
 

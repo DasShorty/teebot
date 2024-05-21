@@ -1,19 +1,14 @@
 package de.dasshorty.teebot.tickets.create;
 
 import de.dasshorty.teebot.api.modal.Modal;
-import de.dasshorty.teebot.tickets.Ticket;
-import de.dasshorty.teebot.tickets.TicketDatabase;
+import de.dasshorty.teebot.tickets.TicketDto;
 import de.dasshorty.teebot.tickets.TicketReason;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
-import net.dv8tion.jda.api.managers.channel.concrete.ThreadChannelManager;
 
 import java.awt.*;
 import java.time.Instant;
@@ -86,7 +81,7 @@ public class DescriptionTicketModal implements Modal {
                     )
                     .queue();
 
-            this.ticketDatabase.insertTicket(new Ticket(ticketId, member.getId(), threadChannel.getId(), ticketReason, ticketDescription, List.of()));
+            this.ticketDatabase.insertTicket(new TicketDto(ticketId, member.getId(), threadChannel.getId(), ticketReason, ticketDescription, List.of()));
 
             hook.editOriginal("Dein Ticket wurde in " + threadChannel.getAsMention() + " erstellt!").queue();
 

@@ -21,26 +21,26 @@ public class GiveawayDatabase {
         return this.mongoHandler.collection("giveaways");
     }
 
-    public void insertGiveaway(Giveaway giveaway) {
-        this.collection().insertOne(giveaway.toDocument());
+    public void insertGiveaway(GiveawayDto giveawayDto) {
+        this.collection().insertOne(giveawayDto.toDocument());
     }
 
-    public List<Giveaway> getActiveGiveaways() {
+    public List<GiveawayDto> getActiveGiveaways() {
 
         FindIterable<Document> documents = this.collection().find(Filters.eq("active", true));
 
         if (!documents.cursor().hasNext())
             return List.of();
 
-        List<Giveaway> giveaways = new ArrayList<>();
+        List<GiveawayDto> giveawayDtos = new ArrayList<>();
 
         documents.forEach(document -> {
 
-            giveaways.add(Giveaway.fromJson(document.toJson()));
+            giveawayDtos.add(GiveawayDto.fromJson(document.toJson()));
 
         });
 
-        return giveaways;
+        return giveawayDtos;
     }
 
     public long countGiveaways() {
@@ -51,7 +51,7 @@ public class GiveawayDatabase {
         return this.collection().countDocuments(Filters.eq("giveawayId", giveawayId)) > 0L;
     }
 
-    public Optional<Giveaway> getGiveaway(long giveawayId) {
+    public Optional<GiveawayDto> getGiveaway(long giveawayId) {
 
         if (!this.isGiveawayPersist(giveawayId))
             return Optional.empty();
@@ -61,7 +61,7 @@ public class GiveawayDatabase {
         if (document == null || document.isEmpty())
             return Optional.empty();
 
-        return Optional.of(Giveaway.fromJson(document.toJson()));
+        return Optional.of(GiveawayDto.fromJson(document.toJson()));
     }
 
     private void deleteGiveaway(long giveawayId) {
@@ -73,15 +73,15 @@ public class GiveawayDatabase {
 
     }
 
-    public void updateGiveaway(Giveaway giveaway) {
+    public void updateGiveaway(GiveawayDto giveawayDto) {
 
-        if (!this.isGiveawayPersist(giveaway.giveawayId())) {
-            this.insertGiveaway(giveaway);
+        if (!this.isGiveawayPersist(giveawayDto.giveawayId())) {
+            this.insertGiveaway(giveawayDto);
             return;
         }
 
-        this.collection().deleteOne(Filters.eq("giveawayId", giveaway.giveawayId()));
-        this.insertGiveaway(giveaway);
+        this.collection().deleteOne(Filters.eq("giveawayId", giveawayDto.giveawayId()));
+        this.insertGiveaway(giveawayDto);
 
     }
 

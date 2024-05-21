@@ -36,25 +36,25 @@ public class EnterGiveawayButton implements Button {
 
         long giveawayId = Long.parseLong(optionalGiveawayId.get());
 
-        Optional<Giveaway> optionalGiveaway = this.giveawayDatabase.getGiveaway(giveawayId);
+        Optional<GiveawayDto> optionalGiveaway = this.giveawayDatabase.getGiveaway(giveawayId);
 
         if (optionalGiveaway.isEmpty()) {
             event.getHook().editOriginal("Das Giveaway konnte nicht gefunden werden!").queue();
             return;
         }
 
-        Giveaway giveaway = optionalGiveaway.get();
+        GiveawayDto giveawayDto = optionalGiveaway.get();
 
         String memberId = event.getMember().getId();
 
-        if (giveaway.enteredMemberIds().contains(memberId)) {
+        if (giveawayDto.enteredMemberIds().contains(memberId)) {
             event.getHook().editOriginal("Du nimmst bereits am Giveaway teil!").queue();
             return;
         }
 
-        giveaway.enteredMemberIds().add(memberId);
+        giveawayDto.enteredMemberIds().add(memberId);
 
-        this.giveawayDatabase.updateGiveaway(giveaway);
+        this.giveawayDatabase.updateGiveaway(giveawayDto);
 
         event.getHook().editOriginal("Du nimmst nun an dem Giveaway teil!").queue();
     }

@@ -1,7 +1,6 @@
 package de.dasshorty.teebot.tickets.create;
 
 import de.dasshorty.teebot.api.menu.string.StringSelectionMenu;
-import de.dasshorty.teebot.tickets.TicketDatabase;
 import de.dasshorty.teebot.tickets.TicketReason;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;

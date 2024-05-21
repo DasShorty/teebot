@@ -1,212 +1,146 @@
 package de.dasshorty.teebot.embedcreator;
 
-import de.dasshorty.teebot.api.Paginator;
-import de.dasshorty.teebot.api.Roles;
+import com.google.gson.Gson;
 import de.dasshorty.teebot.api.commands.slashcommands.SlashCommand;
+import de.dasshorty.teebot.embedcreator.dto.EmbedDto;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.entities.channel.unions.GuildChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.internal.interactions.CommandDataImpl;
-import org.jetbrains.annotations.NotNull;
+import org.bson.types.ObjectId;
 
 import java.awt.*;
-import java.time.Instant;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class EmbedCommand implements SlashCommand {
 
-    private final EmbedDatabase embedDatabase;
+    private final EmbedRepository embedRepository;
+    private final EmbedManager embedManager;
 
-    public EmbedCommand(EmbedDatabase embedDatabase) {
-        this.embedDatabase = embedDatabase;
+    public EmbedCommand(EmbedManager embedManager) {
+        this.embedRepository = embedManager.getEmbedRepo();
+        this.embedManager = embedManager;
     }
 
     @Override
     public CommandDataImpl commandData() {
 
-        // Embed Create/Delete/Send/List
-
-        return new CommandDataImpl("embed", "Verwalte Embeds")
+        return new CommandDataImpl("embed", "Verwalte die Embeds")
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
                 .addSubcommands(
-                        new SubcommandData("create", "Erstelle ein Embed")
-                                .addOption(OptionType.STRING, "embedid", "Die ID des Embeds", true)
-                                .addOption(OptionType.BOOLEAN, "author", "Ob du als Autor angegeben werden sollst", true)
-                                .addOption(OptionType.STRING, "title", "Der Titel des Embeds", false)
-                                .addOption(OptionType.STRING, "description", "Die Beschreibung des Embeds", false),
+                        new SubcommandData("create", "Erstelle ein neues Embed")
+                                .addOption(OptionType.STRING, "desc", "Beschreibe das Embed", true)
+                                .addOption(OptionType.ATTACHMENT, "embed", "Json Datei von embed.dan.onl", true),
                         new SubcommandData("delete", "Lösche ein Embed")
-                                .addOption(OptionType.STRING, "embedid", "Gib die ID des Embeds an, dass gelöscht werden soll", true),
-                        new SubcommandData("send", "Sende ein Embed in einen Channel")
-                                .addOption(OptionType.STRING, "embedid", "Die ID des Embeds", true)
-                                .addOption(OptionType.CHANNEL, "channel", "Der Channel wo das Embed reingesendet werden soll", true),
-                        new SubcommandData("list", "Zeige dir alle gespeicherten Embeds an")
-                                .addOption(OptionType.INTEGER, "page", "Welche Seite angezeigt werden soll", false)
+                                .addOption(OptionType.STRING, "id", "Die ID des Embeds", true),
+                        new SubcommandData("list", "Liste dir die alle Embeds mit einer bestimmten Query")
+                                .addOption(OptionType.STRING, "query", "Suche nach Embeds mit bestimmter Beschreibung", true),
+                        new SubcommandData("send", "Send ein Embed in einen Channel")
+                                .addOption(OptionType.CHANNEL, "channel", "Channel in welchen das Embed geschickt werden soll", true)
+                                .addOption(OptionType.STRING, "id", "Die ID des Embeds", true)
                 );
     }
 
     @Override
-    public void onExecute(@NotNull SlashCommandInteractionEvent event) {
+    public void onExecute(SlashCommandInteractionEvent event) {
 
-        Member member = event.getMember();
-
-        assert null != member;
-
-        if (!(Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER))) {
-
-            event.reply("Du hast keine Rechte für diese Funktion!").setEphemeral(true).queue();
-
-            return;
-        }
-
-
-        switch (Objects.requireNonNull(event.getSubcommandName()).toLowerCase(Locale.ROOT)) {
-
+        switch (event.getSubcommandName().toLowerCase()) {
             case "create" -> {
 
                 event.deferReply(true).queue();
-                String embedId = event.getOption("embedid", OptionMapping::getAsString);
+                Message.Attachment jsonFile = event.getOption("embed", OptionMapping::getAsAttachment);
+                String desc = event.getOption("desc", OptionMapping::getAsString);
 
-                @SuppressWarnings("AutoBoxing")
-                Boolean author = event.getOption("author", OptionMapping::getAsBoolean);
+                try {
 
-                // optional options
+                    InputStream inputStream = URI.create(jsonFile.getUrl()).toURL().openStream();
 
-                String title = event.getOption("title", OptionMapping::getAsString);
-                String description = event.getOption("description", OptionMapping::getAsString);
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 
-                Embed.Author authorTile = new Embed.Author(null, null, null);
-                if (Boolean.TRUE.equals(author))
-                    authorTile = new Embed.Author(member.getEffectiveName(), member.getEffectiveAvatarUrl(), null);
+                    StringBuilder builder = new StringBuilder();
 
-                Embed.Content contentTile = new Embed.Content(title, description);
+                    int c = 0;
+                    while ((c = bufferedReader.read()) != -1) {
+                        builder.append((char) c);
+                    }
 
-                this.embedDatabase.storeEmbed(new Embed(
-                        embedId,
-                        authorTile,
-                        contentTile,
-                        new Embed.Fields(List.of()),
-                        new Embed.Footer(null),
-                        new Embed.Style(null, null, null, null)
-                ));
+                    EmbedDto embedDto = new Gson().fromJson(builder.toString(), EmbedDto.class);
+                    embedDto.setEmbedId(new ObjectId().toString());
+                    embedDto.setEmbedDescription(desc);
+                    EmbedDto savedDto = this.embedRepository.save(embedDto);
 
-                event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                                .setAuthor("Embed Creator")
-                                .setDescription("Möchtest du den Autor ändern?")
-                                .setColor(Color.WHITE)
-                                .setTimestamp(Instant.now())
-                                .setFooter("Step 1 / 4")
-                                .build())
-                        .setComponents(ActionRow.of(
-                                Button.primary("embed-creator-step1", "Autor setzen"),
-                                Button.secondary("embed-creator-step2", "Fortfahren mit Feldern (2/4)")
-                        ))
-                        .queue(message -> this.embedDatabase.getMemberEmbedMap().put(member.getId(), embedId));
+
+                    event.getHook().editOriginal("Das Embed (**" + savedDto.getEmbedId() + "**) wurde erfolgreich in der Datenbank gespeichert!").queue();
+
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
-
-            case "list" -> {
+            case "delete" -> {
 
                 event.deferReply(true).queue();
+                String id = event.getOption("id", OptionMapping::getAsString);
 
-                var page = event.getOption("page", OptionMapping::getAsInt);
-                if (null == page)
-                    page = 1;
-
-                List<Embed> embeds = this.embedDatabase.embeds();
-
-                HashMap<Integer, ArrayList<Embed>> paginatedEmbeds = new Paginator<>(embeds).maxSizePerPage(5);
-
-                EmbedBuilder embed = new EmbedBuilder()
-                        .setAuthor("Embed System")
-                        .setColor(Color.WHITE)
-                        .setTitle("Page " + page + " / " + paginatedEmbeds.keySet().size());
-
-                if (!paginatedEmbeds.containsKey(page.intValue() - 1)) {
-
-                    event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                            .setAuthor("Embed System")
-                            .setDescription("Es gibt die Seite **nicht** die du angegeben hast!")
-                            .setColor(Color.RED)
-                            .setTimestamp(Instant.now())
-                            .build()).queue();
-
+                assert id != null;
+                if (!this.embedRepository.existsById(id)) {
+                    event.getHook().editOriginal("Das Embed (**" + id + "**) konnte nicht gefunden werden!").queue();
                     return;
                 }
 
-                for (Embed pageEmbed : paginatedEmbeds.get(page.intValue() - 1)) {
-                    String title = pageEmbed.getContent().title();
-
-                    embed.addField(pageEmbed.getEmbedId(), null == title ? "*Kein Titel gesetzt*" : title, false);
-
-                }
-
-                event.getHook().editOriginalEmbeds(embed.build()).queue();
-
+                this.embedRepository.deleteById(id);
+                event.getHook().editOriginal("Das Embed wurde gelöscht!").queue();
             }
 
             case "send" -> {
 
                 event.deferReply(true).queue();
+                String id = event.getOption("id", OptionMapping::getAsString);
+                GuildChannelUnion channel = event.getOption("channel", OptionMapping::getAsChannel);
 
-                String embedId = event.getOption("embedid", OptionMapping::getAsString);
-                GuildMessageChannel channel = Objects.requireNonNull(event.getOption("channel", OptionMapping::getAsChannel)).asGuildMessageChannel();
+                assert channel != null;
 
-                CompletableFuture<Optional<Embed>> future = this.embedDatabase.getEmbed(embedId);
-
-                try {
-                    Optional<Embed> optionalEmbed = future.get();
-
-                    if (optionalEmbed.isEmpty()) {
-                        event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                                .setAuthor("Embed System")
-                                .setDescription("Das angegebene Embed mit der ID **" + embedId + "** existiert in der Datenbank nicht.")
-                                .setColor(Color.RED)
-                                .setTimestamp(Instant.now())
-                                .build()).queue();
-                        return;
-                    }
-
-                    Embed embed = optionalEmbed.get();
-
-                    EmbedBuilder sendEmbed = embed.buildEmbed();
-
-                    channel.sendMessageEmbeds(sendEmbed.build()).queue();
-                    event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                            .setAuthor("Embed System")
-                            .setDescription("Das Embed wurde erfolgreich in den Channel " + channel.getAsMention() + " gesendet!")
-                            .setColor(Color.GREEN)
-                            .build()).queue();
-
-                } catch (InterruptedException | ExecutionException e) {
-                    e.fillInStackTrace();
+                if (!(channel instanceof GuildMessageChannel messageChannel)) {
+                    event.getHook().editOriginal("In den angegebenen Channel können keine Nachrichten gesendet werden!").queue();
+                    return;
                 }
+
+                EmbedBuilder builder = this.embedManager.buildEmbed(id);
+                messageChannel.sendMessageEmbeds(builder.build()).queue(message -> {
+                    event.getHook().editOriginal("Das Embed (" + message.getJumpUrl() + ") wurde in den Channel geschickt").queue();
+                });
             }
 
-            case "delete" -> {
+            case "list" -> {
 
                 event.deferReply(true).queue();
+                String query = event.getOption("query", OptionMapping::getAsString);
 
-                String embedId = event.getOption("embedid", OptionMapping::getAsString);
+                List<EmbedDto> embedDtos = this.embedManager.filteredByQuery(query);
 
-                this.embedDatabase.deleteEmbed(embedId);
+                EmbedBuilder builder = new EmbedBuilder();
 
-                event.getHook().editOriginalEmbeds(new EmbedBuilder()
-                        .setAuthor("Embed System")
-                        .setDescription("Das Embed wurde in der Datenbank gelöscht!")
-                        .setColor(Color.GREEN)
-                        .build()).queue();
+                embedDtos.forEach(embedDto -> builder.addField(embedDto.getEmbedId(), embedDto.getEmbedDescription(), true));
+
+                event.getHook().editOriginalEmbeds(builder.setTitle("Alle Embeds mit query \"" + query + "\"")
+                        .setDescription("Hier werden alle Embeds angezeigt, die als Embed Description die angegebenen Wörter beinhalten.")
+                        .setColor(Color.WHITE).build()).queue();
 
             }
-
         }
 
     }
-
 }

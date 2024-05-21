@@ -1,6 +1,8 @@
 plugins {
     id("java")
     id("com.github.johnrengelman.shadow") version ("8.1.1")
+    id("org.springframework.boot") version "3.2.5"
+    id("io.spring.dependency-management") version "1.1.4"
     application
 }
 
@@ -25,6 +27,13 @@ dependencies {
 
     // OkHttp Client
     implementation("com.squareup.okhttp3:okhttp:4.12.0") // https://square.github.io/okhttp/
+
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 application {

@@ -1,7 +1,6 @@
 package de.dasshorty.teebot.tickets.listener;
 
-import de.dasshorty.teebot.tickets.Ticket;
-import de.dasshorty.teebot.tickets.TicketDatabase;
+import de.dasshorty.teebot.tickets.TicketDto;
 import de.dasshorty.teebot.tickets.TicketMessageData;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -33,22 +32,22 @@ public class TicketMessageListener extends ListenerAdapter {
 
         long ticketId = Long.parseLong(threadChannel.getName());
 
-        Optional<Ticket> optionalTicket = this.ticketDatabase.getTicketWithId(ticketId);
+        Optional<TicketDto> optionalTicket = this.ticketDatabase.getTicketWithId(ticketId);
 
         if (optionalTicket.isEmpty())
             return;
 
-        Ticket ticket = optionalTicket.get();
+        TicketDto ticketDto = optionalTicket.get();
 
-        ArrayList<TicketMessageData> messages = new ArrayList<>(ticket.messages());
+        ArrayList<TicketMessageData> messages = new ArrayList<>(ticketDto.messages());
 
         Member member = event.getMember();
         assert member != null;
 
         messages.add(new TicketMessageData(member.getId(), member.getEffectiveName(), event.getChannel().getId(), String.valueOf(ticketId), event.getMessage().getContentRaw()));
 
-        Ticket updatedTicket = new Ticket(ticketId, ticket.opener(), ticket.threadId(), ticket.reason(), ticket.description(), messages);
+        TicketDto updatedTicketDto = new TicketDto(ticketId, ticketDto.opener(), ticketDto.threadId(), ticketDto.reason(), ticketDto.description(), messages);
 
-        this.ticketDatabase.updateTicket(updatedTicket);
+        this.ticketDatabase.updateTicket(updatedTicketDto);
     }
 }
