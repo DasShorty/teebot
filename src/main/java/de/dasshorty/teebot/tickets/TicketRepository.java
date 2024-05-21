@@ -7,5 +7,6 @@ import java.util.Optional;
 public interface TicketRepository extends MongoRepository<TicketDto, String> {
 
     Optional<TicketDto> findByThreadId(String threadId);
+    Optional<TicketDto> findByReason(TicketReason reason);
 
 }

@@ -3,12 +3,11 @@ plugins {
     id("com.github.johnrengelman.shadow") version ("8.1.1")
     id("org.springframework.boot") version "3.2.5"
     id("io.spring.dependency-management") version "1.1.4"
-    application
 }
 
 group = "de.dasshorty"
 version = "1.0-SNAPSHOT"
-val javaMainClass = "de.dasshorty.teebot.Bot"
+
 
 repositories {
     mavenCentral()
@@ -36,21 +35,10 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-application {
-    mainClass = javaMainClass
-}
-
 tasks {
     compileJava {
         options.encoding = "UTF-8"
         options.release.set(17)
-    }
-}
-
-tasks.withType(Jar::class.java) {
-    manifest {
-        attributes["Manifest-Version"] = "1.0"
-        attributes["Main-Class"] = javaMainClass
     }
 }
 java {

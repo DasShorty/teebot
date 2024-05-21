@@ -64,9 +64,7 @@ public class TicketCloseButton implements Button {
             hook.editOriginal("Das Ticket wird in 1 Minuten gelöscht!").queue(message -> {
                 event.getChannel().delete().queueAfter(1L, TimeUnit.MINUTES);
 
-                ticketChannel.getManager().setLocked(true)
-                        .setInvitable(false)
-                        .setArchived(true).queue();
+                ticketChannel.getManager().setLocked(true).setInvitable(false).setArchived(true).queue();
 
             });
 
@@ -79,13 +77,7 @@ public class TicketCloseButton implements Button {
 
     private void sendTicketClosed(ThreadChannel threadChannel) {
 
-        threadChannel.sendMessageEmbeds(new EmbedBuilder()
-                .setAuthor("Tickets")
-                .setColor(Color.ORANGE)
-                .setDescription("Das Ticket wurde geschlossen!")
-                .addField("Löschung in", "Das Ticket wird gelöscht <t:" + (Instant.now().getEpochSecond() + Duration.ofMinutes(1L).toSeconds()) + ":R>", false)
-                .setTimestamp(Instant.now())
-                .build()).queue();
+        threadChannel.sendMessageEmbeds(new EmbedBuilder().setAuthor("Tickets").setColor(Color.ORANGE).setDescription("Das Ticket wurde geschlossen!").addField("Löschung in", "Das Ticket wird gelöscht <t:" + (Instant.now().getEpochSecond() + Duration.ofMinutes(1L).toSeconds()) + ":R>", false).setTimestamp(Instant.now()).build()).queue();
 
     }
 }

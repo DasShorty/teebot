@@ -2,6 +2,7 @@ package de.dasshorty.teebot.tickets.listener;
 
 import de.dasshorty.teebot.tickets.TicketDto;
 import de.dasshorty.teebot.tickets.TicketMessageData;
+import de.dasshorty.teebot.tickets.TicketRepository;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
@@ -13,10 +14,10 @@ import java.util.Optional;
 
 public class TicketMessageListener extends ListenerAdapter {
 
-    private final TicketDatabase ticketDatabase;
+    private final TicketRepository ticketRepo;
 
-    public TicketMessageListener(TicketDatabase ticketDatabase) {
-        this.ticketDatabase = ticketDatabase;
+    public TicketMessageListener(TicketRepository ticketRepo) {
+        this.ticketRepo = ticketRepo;
     }
 
     @Override
@@ -30,24 +31,22 @@ public class TicketMessageListener extends ListenerAdapter {
         if (!threadChannel.getParentMessageChannel().getId().equals("1159846560549576817"))
             return;
 
-        long ticketId = Long.parseLong(threadChannel.getName());
 
-        Optional<TicketDto> optionalTicket = this.ticketDatabase.getTicketWithId(ticketId);
+        Optional<TicketDto> optional = this.ticketRepo.findByThreadId(threadChannel.getId());
 
-        if (optionalTicket.isEmpty())
+        if (optional.isEmpty())
             return;
 
-        TicketDto ticketDto = optionalTicket.get();
+        TicketDto ticketDto = optional.get();
 
-        ArrayList<TicketMessageData> messages = new ArrayList<>(ticketDto.messages());
+        ArrayList<TicketMessageData> messages = new ArrayList<>(ticketDto.getMessages());
 
         Member member = event.getMember();
         assert member != null;
 
-        messages.add(new TicketMessageData(member.getId(), member.getEffectiveName(), event.getChannel().getId(), String.valueOf(ticketId), event.getMessage().getContentRaw()));
+        messages.add(new TicketMessageData(member.getId(), member.getEffectiveName(), event.getChannel().getId(), ticketDto.getTicketId(), event.getMessage().getContentRaw()));
+        ticketDto.setMessages(messages);
 
-        TicketDto updatedTicketDto = new TicketDto(ticketId, ticketDto.opener(), ticketDto.threadId(), ticketDto.reason(), ticketDto.description(), messages);
-
-        this.ticketDatabase.updateTicket(updatedTicketDto);
+        this.ticketRepo.save(ticketDto);
     }
 }

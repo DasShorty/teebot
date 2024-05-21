@@ -2,7 +2,6 @@ package de.dasshorty.teebot.jtc.button;
 
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.modal.Modal;
-import de.dasshorty.teebot.jtc.JTC;
 import de.dasshorty.teebot.jtc.JTCDto;
 import de.dasshorty.teebot.jtc.JTCRepository;
 import net.dv8tion.jda.api.EmbedBuilder;
