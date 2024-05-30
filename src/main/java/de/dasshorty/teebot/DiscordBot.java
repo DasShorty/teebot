@@ -8,6 +8,7 @@ import de.dasshorty.teebot.giveaways.GiveawayRepository;
 import de.dasshorty.teebot.jtc.JTCManager;
 import de.dasshorty.teebot.jtc.JTCRepository;
 import de.dasshorty.teebot.notification.twitch.TwitchBot;
+import de.dasshorty.teebot.thread.ThreadManager;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -44,6 +45,7 @@ public class DiscordBot {
 
         new EmbedManager(embedRepository).setupDiscord(this);
         new JTCManager(jtcRepository).setupDiscord(this);
+        new ThreadManager().setupDiscord(this);
 
         try {
             JDA jda = this.builder.setAutoReconnect(true).build().awaitReady();
