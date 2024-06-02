@@ -5,8 +5,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WarnDto {
+class WarnDto {
 
     private WarnType type;
     private String punisherId;
+    private long time;
+    private long submitted;
+    private WarnPunishment punishment;
+
 }

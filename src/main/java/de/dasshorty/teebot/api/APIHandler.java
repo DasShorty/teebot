@@ -39,7 +39,7 @@ public class APIHandler {
         this.commandHandler.getMessageCommands().add(messageCommand);
     }
 
-    public void addUSerCommand(UserCommand userCommand) {
+    public void addUserCommand(UserCommand userCommand) {
         this.commandHandler.getUserCommands().add(userCommand);
     }
 

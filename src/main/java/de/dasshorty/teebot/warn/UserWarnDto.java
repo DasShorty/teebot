@@ -13,6 +13,6 @@ public class UserWarnDto {
     @Id
     private String userId;
     private List<WarnDto> warns;
-    private WarnPunishment punishment;
+
 
 }

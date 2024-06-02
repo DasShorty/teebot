@@ -7,8 +7,15 @@ import de.dasshorty.teebot.giveaways.GiveawayManager;
 import de.dasshorty.teebot.giveaways.GiveawayRepository;
 import de.dasshorty.teebot.jtc.JTCManager;
 import de.dasshorty.teebot.jtc.JTCRepository;
+import de.dasshorty.teebot.membercounter.UpdateMemberCounter;
 import de.dasshorty.teebot.notification.twitch.TwitchBot;
+import de.dasshorty.teebot.notification.youtube.YoutubeNotificationManager;
+import de.dasshorty.teebot.notification.youtube.YoutubeNotifyRepository;
 import de.dasshorty.teebot.thread.ThreadManager;
+import de.dasshorty.teebot.tickets.TicketManager;
+import de.dasshorty.teebot.tickets.TicketRepository;
+import de.dasshorty.teebot.warn.WarnManager;
+import de.dasshorty.teebot.warn.WarnRepository;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -29,7 +36,8 @@ public class DiscordBot {
     private final APIHandler apiHandler;
 
     @Autowired
-    public DiscordBot(EmbedRepository embedRepository, JTCRepository jtcRepository, GiveawayRepository giveawayRepository) {
+    public DiscordBot(EmbedRepository embedRepository, JTCRepository jtcRepository, GiveawayRepository giveawayRepository,
+                      WarnRepository warnRepository, TicketRepository ticketRepository, YoutubeNotifyRepository youtubeNotifyRepository) {
         OkHttpClient httpClient = new OkHttpClient();
 
         this.builder = JDABuilder.createDefault(System.getenv("BOT_TOKEN"));
@@ -46,6 +54,8 @@ public class DiscordBot {
         new EmbedManager(embedRepository).setupDiscord(this);
         new JTCManager(jtcRepository).setupDiscord(this);
         new ThreadManager().setupDiscord(this);
+        new WarnManager(warnRepository).setupDiscord(this);
+        new TicketManager(ticketRepository).setupDiscord(this);
 
         try {
             JDA jda = this.builder.setAutoReconnect(true).build().awaitReady();
@@ -54,7 +64,9 @@ public class DiscordBot {
 
             new GiveawayManager(giveawayRepository, guild).setupDiscord(this);
             new TwitchBot(guild);
+            new YoutubeNotificationManager(youtubeNotifyRepository, new OkHttpClient()).initCheck(guild);
 
+            new UpdateMemberCounter(guild);
             this.apiHandler.getCommandHandler().updateCommands(guild);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
