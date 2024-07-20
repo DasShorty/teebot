@@ -17,7 +17,7 @@ dependencies {
     implementation("net.dv8tion:JDA:5.0.1")
 
     // 3rd party api's
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.11.0")
 
     implementation("com.github.twitch4j:twitch4j:1.21.0")
 
