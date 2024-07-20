@@ -18,13 +18,10 @@ import java.util.HashMap;
 
 public class TwitchBot {
 
-    private final TwitchDatabase twitchDatabase;
     private final HashMap<String, Message> notifications = new HashMap<>();
     private TwitchClient client;
 
-    public TwitchBot(TwitchDatabase twitchDatabase, Guild guild) {
-        this.twitchDatabase = twitchDatabase;
-
+    public TwitchBot(Guild guild) {
         String twitchAccessToken = System.getenv("TWITCH_ACCESS_TOKEN");
         OAuth2Credential twitch = new OAuth2Credential("twitch", twitchAccessToken);
         this.client = TwitchClientBuilder
@@ -80,47 +77,16 @@ public class TwitchBot {
                 });
     }
 
-    TwitchDatabase getTwitchDatabase() {
-        return this.twitchDatabase;
-    }
-
-    synchronized void sendMessage(String msg) {
-        this.twitchDatabase.getAllTwitchChannels().forEach(channel -> {
-            this.client.getChat().sendMessage(channel.twitchChannel(), msg);
-        });
+    void sendMessage(String msg) {
+        this.client.getChat().sendMessage("laudytv", msg);
     }
 
     private void loadTwitchChannel() {
-        this.twitchDatabase.getAllTwitchChannels().forEach(channel -> {
-            this.client.getClientHelper().enableStreamEventListener(channel.twitchChannel());
-            this.client.getChat().joinChannel(channel.twitchChannel());
-            this.client.getChat().sendMessage(channel.twitchChannel(), "Der Teebot ist erfolgreich deinem Chat beigetreten!");
-            System.out.println("Logged in into " + channel.twitchChannel() + " Channel!");
-        });
-    }
 
-    boolean addChannel(String channelName) {
+        this.client.getClientHelper().enableStreamEventListener("laudytv");
+        this.client.getChat().joinChannel("laudytv");
+        this.client.getChat().sendMessage("laudytv", "Der Teebot ist erfolgreich deinem Chat beigetreten!");
 
-        if (this.twitchDatabase.isChannelRegistered(channelName))
-            return false;
-
-        this.client.getClientHelper().enableStreamEventListener(channelName);
-        this.twitchDatabase.addChannel(new TwitchChannel(channelName));
-        this.client.getChat().joinChannel(channelName);
-        this.client.getChat().sendMessage(channelName, "Der Teebot ist erfolgreich deinem Chat beigetreten!");
-        System.out.println("Added " + channelName + " Twitch channel!");
-
-        return true;
-    }
-
-    public boolean removeChannel(String channelName) {
-
-        if (!this.twitchDatabase.isChannelRegistered(channelName))
-            return false;
-
-        this.client.getClientHelper().disableStreamEventListener(channelName);
-        this.twitchDatabase.removeChannel(channelName);
-        System.out.println("Removed " + channelName + " Twitch channel!");
-        return true;
+        System.out.println("Logged in into LaudyTV Channel!");
     }
 }

@@ -2,21 +2,20 @@ package de.dasshorty.teebot.jtc.button;
 
 import de.dasshorty.teebot.api.Roles;
 import de.dasshorty.teebot.api.modal.Modal;
-import de.dasshorty.teebot.jtc.JTC;
-import de.dasshorty.teebot.jtc.JTCDatabase;
+import de.dasshorty.teebot.jtc.JTCDto;
+import de.dasshorty.teebot.jtc.JTCRepository;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
-import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 
 import java.awt.*;
 import java.util.Optional;
 
 public class EnterNewTitleModal implements Modal {
-    private final JTCDatabase jtcDatabase;
+    private final JTCRepository jtcRepo;
 
-    public EnterNewTitleModal(JTCDatabase jtcDatabase) {
-        this.jtcDatabase = jtcDatabase;
+    public EnterNewTitleModal(JTCRepository jtcRepository) {
+        this.jtcRepo = jtcRepository;
     }
 
     @Override
@@ -32,9 +31,9 @@ public class EnterNewTitleModal implements Modal {
 
         String channelId = event.getChannel().getId();
 
-        Optional<JTC> optionalJTC = this.jtcDatabase.getJTC(channelId);
+        Optional<JTCDto> optional = this.jtcRepo.findById(channelId);
 
-        if (optionalJTC.isEmpty()) {
+        if (optional.isEmpty()) {
             event.replyEmbeds(new EmbedBuilder()
                     .setAuthor("Voicechannel Controller")
                     .setDescription("Der Titel konnte nicht geändert werden")
@@ -43,13 +42,13 @@ public class EnterNewTitleModal implements Modal {
             return;
         }
 
-        JTC jtc = optionalJTC.get();
+        JTCDto dto = optional.get();
 
         String title = event.getValue("title").getAsString();
 
         assert member != null;
 
-        if (!jtc.channelOwner().equals(member.getId()) && !Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER, Roles.STAFF)) {
+        if (!dto.getChannelOwnerId().equals(member.getId()) && !Roles.hasMemberRole(member, Roles.ADMIN, Roles.DEVELOPER, Roles.STAFF)) {
 
             event.replyEmbeds(new EmbedBuilder()
                     .setAuthor("Voicechannel Controller")

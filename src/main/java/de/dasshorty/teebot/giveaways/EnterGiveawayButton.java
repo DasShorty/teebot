@@ -11,10 +11,10 @@ import java.util.Optional;
 
 public class EnterGiveawayButton implements Button {
 
-    private final GiveawayDatabase giveawayDatabase;
+    private final GiveawayRepository giveawayRepo;
 
-    public EnterGiveawayButton(GiveawayDatabase giveawayDatabase) {
-        this.giveawayDatabase = giveawayDatabase;
+    public EnterGiveawayButton(GiveawayRepository giveawayRepo) {
+        this.giveawayRepo = giveawayRepo;
     }
 
     @Override
@@ -34,28 +34,25 @@ public class EnterGiveawayButton implements Button {
             return;
         }
 
-        long giveawayId = Long.parseLong(optionalGiveawayId.get());
+        Optional<GiveawayDto> optional = this.giveawayRepo.findById(optionalGiveawayId.get());
 
-        Optional<Giveaway> optionalGiveaway = this.giveawayDatabase.getGiveaway(giveawayId);
-
-        if (optionalGiveaway.isEmpty()) {
+        if (optional.isEmpty()) {
             event.getHook().editOriginal("Das Giveaway konnte nicht gefunden werden!").queue();
             return;
         }
 
-        Giveaway giveaway = optionalGiveaway.get();
+        GiveawayDto giveawayDto = optional.get();
 
         String memberId = event.getMember().getId();
 
-        if (giveaway.enteredMemberIds().contains(memberId)) {
+        if (giveawayDto.getEnteredMemberIds().contains(memberId)) {
             event.getHook().editOriginal("Du nimmst bereits am Giveaway teil!").queue();
             return;
         }
 
-        giveaway.enteredMemberIds().add(memberId);
+        giveawayDto.getEnteredMemberIds().add(memberId);
 
-        this.giveawayDatabase.updateGiveaway(giveaway);
-
+        this.giveawayRepo.save(giveawayDto);
         event.getHook().editOriginal("Du nimmst nun an dem Giveaway teil!").queue();
     }
 

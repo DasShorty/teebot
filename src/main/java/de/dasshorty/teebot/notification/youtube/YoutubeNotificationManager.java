@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.NewsChannel;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -20,7 +19,7 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public record YoutubeNotificationManager(YoutubeNotificationDatabase database, OkHttpClient httpClient) {
+public record YoutubeNotificationManager(YoutubeNotifyRepository repository, OkHttpClient httpClient) {
 
     private static final String API_KEY = System.getenv("GOOGLE_YT_DATA_API");
 
@@ -41,9 +40,38 @@ public record YoutubeNotificationManager(YoutubeNotificationDatabase database, O
         }, 0L, 1L, TimeUnit.MINUTES);
     }
 
+    private boolean compareIds(String videoId) {
+        Optional<YoutubeNotifyDto> optional = this.repository.findById("laudytv");
+
+        if (optional.isEmpty()) {
+            return false;
+        }
+
+        YoutubeNotifyDto youtubeNotifyDto = optional.get();
+
+        return youtubeNotifyDto.getYoutubeVideoId().equals(videoId);
+
+    }
+
+    private void changeVideoId(String videoId) {
+        Optional<YoutubeNotifyDto> optional = this.repository.findById("laudytv");
+
+        YoutubeNotifyDto dto = null;
+        if (optional.isEmpty()) {
+            dto = new YoutubeNotifyDto();
+            dto.setId("laudytv");
+        } else {
+            dto = optional.get();
+        }
+
+        dto.setYoutubeVideoId(videoId);
+
+        this.repository.save(dto);
+    }
+
     private void sendNotifications(Guild guild, String lastVideoId) throws IOException {
-        if (!this.database.compareIds(lastVideoId)) {
-            this.database.setLastVideoId(lastVideoId);
+        if (!this.compareIds(lastVideoId)) {
+            this.changeVideoId(lastVideoId);
             Optional<VideoData> videoData = this.getVideoData(lastVideoId);
 
             if (videoData.isEmpty()) {

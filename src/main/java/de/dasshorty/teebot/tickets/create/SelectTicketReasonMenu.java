@@ -1,8 +1,9 @@
 package de.dasshorty.teebot.tickets.create;
 
 import de.dasshorty.teebot.api.menu.string.StringSelectionMenu;
-import de.dasshorty.teebot.tickets.TicketDatabase;
+import de.dasshorty.teebot.tickets.TicketCache;
 import de.dasshorty.teebot.tickets.TicketReason;
+import de.dasshorty.teebot.tickets.TicketRepository;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
@@ -11,10 +12,10 @@ import net.dv8tion.jda.api.interactions.modals.Modal;
 
 public class SelectTicketReasonMenu implements StringSelectionMenu {
 
-    private final TicketDatabase ticketDatabase;
+    private final TicketRepository ticketRepo;
 
-    public SelectTicketReasonMenu(TicketDatabase ticketDatabase) {
-        this.ticketDatabase = ticketDatabase;
+    public SelectTicketReasonMenu(TicketRepository ticketRepo) {
+        this.ticketRepo = ticketRepo;
     }
 
     @Override
@@ -38,7 +39,7 @@ public class SelectTicketReasonMenu implements StringSelectionMenu {
 
         String ticketReasonId = event.getSelectedOptions().get(0).getValue();
 
-        this.ticketDatabase.addToTicketCache(member, TicketReason.valueOf(ticketReasonId));
+        TicketCache.TICKET_REASON_CACHE.put(member, TicketReason.valueOf(ticketReasonId));
 
     }
 }
