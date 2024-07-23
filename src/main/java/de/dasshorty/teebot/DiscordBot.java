@@ -16,6 +16,7 @@ import de.dasshorty.teebot.tickets.TicketManager;
 import de.dasshorty.teebot.tickets.TicketRepository;
 import de.dasshorty.teebot.warn.WarnManager;
 import de.dasshorty.teebot.warn.WarnRepository;
+import de.dasshorty.teebot.welcomeembed.SendWelcomeEmbed;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -48,6 +49,8 @@ public class DiscordBot {
 
         this.builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_VOICE_STATES);
         this.builder.enableCache(CacheFlag.ONLINE_STATUS, CacheFlag.ACTIVITY, CacheFlag.EMOJI, CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE);
+
+        this.builder.addEventListeners(new SendWelcomeEmbed());
 
         this.apiHandler = new APIHandler(this.builder);
 

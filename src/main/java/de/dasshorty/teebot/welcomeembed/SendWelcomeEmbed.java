@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.FileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -26,24 +28,36 @@ public class SendWelcomeEmbed extends ListenerAdapter {
         TextChannel welcomeChannel = guild.getTextChannelById("835974825360883764");
 
         BufferedImage bufferedImage = this.generateWelcomeImage(member.getEffectiveName(), event.getGuild().getMemberCount(), member.getEffectiveAvatarUrl());
-        if (bufferedImage == null)
-            return;
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+
+        if (bufferedImage == null) {
+            logger.warn("BufferedImage is null");
+            return;
+        }
+
+        if (welcomeChannel == null) {
+            logger.warn("Welcome Image is null");
+            return;
+        }
 
         try {
-            ImageIO.write(bufferedImage, "png", baos);
-
-            assert welcomeChannel != null;
-
+            byte[] bytes = this.encodeToByteArray(bufferedImage);
             welcomeChannel.sendMessage("Hey " + member.getAsMention() + "! Willkommen auf **" + guild.getName() + "**")
-                    .addFiles(FileUpload.fromData(baos.toByteArray(), "welcome.png"))
+                    .addFiles(FileUpload.fromData(bytes, "welcome.png"))
                     .queue();
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
+
+    }
+
+    private byte[] encodeToByteArray(BufferedImage bufferedImage) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(bufferedImage, "png", baos);
+        return baos.toByteArray();
     }
 
     private BufferedImage generateWelcomeImage(String username, int member, String avatarUrl) {
