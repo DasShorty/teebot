@@ -22,7 +22,7 @@ dependencies {
     implementation("com.github.twitch4j:twitch4j:1.22.0")
 
     // mongodb
-    implementation("org.mongodb:mongodb-driver-sync:5.1.4")
+    implementation("org.mongodb:mongodb-driver-sync:5.2.0")
 
     // OkHttp Client
     implementation("com.squareup.okhttp3:okhttp:4.12.0") // https://square.github.io/okhttp/
