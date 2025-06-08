@@ -19,7 +19,7 @@ dependencies {
     // 3rd party api's
     implementation("com.google.code.gson:gson:2.12.1")
 
-    implementation("com.github.twitch4j:twitch4j:1.24.0")
+    implementation("com.github.twitch4j:twitch4j:1.25.0")
 
     // mongodb
     implementation("org.mongodb:mongodb-driver-sync:5.4.0")
