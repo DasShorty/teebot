@@ -25,7 +25,7 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-sync:5.5.1")
 
     // OkHttp Client
-    implementation("com.squareup.okhttp3:okhttp:4.12.0") // https://square.github.io/okhttp/
+    implementation("com.squareup.okhttp3:okhttp:5.0.0") // https://square.github.io/okhttp/
 
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-web")
